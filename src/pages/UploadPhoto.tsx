@@ -123,8 +123,13 @@ export default function UploadPhoto() {
     setExtracting(true);
     try {
       // Parse the image (fetch happens automatically by exifr)
-      const proxyUrl = "https://cors-anywhere.com/" + url;
-      const output = await exifr.parse(proxyUrl, {
+      let urlToUse = url;
+
+      if (document.location.href.startsWith("http://")) {
+        urlToUse = "https://cors-anywhere.com/" + url;
+      }
+
+      const output = await exifr.parse(urlToUse, {
         pick: [
           "DateTimeOriginal",
           "ExposureTime",
