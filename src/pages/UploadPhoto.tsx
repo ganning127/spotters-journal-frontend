@@ -123,11 +123,8 @@ export default function UploadPhoto() {
     setExtracting(true);
     try {
       // Parse the image (fetch happens automatically by exifr)
-      let urlToUse = url;
-
-      if (document.location.href.startsWith("http://")) {
-        urlToUse = "https://cors-anywhere.com/" + url;
-      }
+      let urlToUse =
+        "https://dry-savannah-31116-8d7296f5ae66.herokuapp.com/" + url;
 
       const output = await exifr.parse(urlToUse, {
         pick: [
@@ -383,78 +380,85 @@ export default function UploadPhoto() {
                     }
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Shutter
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="1/500"
+                    className="w-full p-2 border rounded text-sm"
+                    value={formData.shutter_speed}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        shutter_speed: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Aperture
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="f/2.8"
+                    className="w-full p-2 border rounded text-sm"
+                    value={formData.aperture}
+                    onChange={(e) =>
+                      setFormData({ ...formData, aperture: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    ISO
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="100"
+                    className="w-full p-2 border rounded text-sm"
+                    value={formData.iso}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        iso: parseInt(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Focal Length
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="50mm"
+                    className="w-full p-2 border rounded text-sm"
+                    value={formData.focal_length}
+                    onChange={(e) =>
+                      setFormData({ ...formData, focal_length: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Camera
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nikon D850"
+                    className="w-full p-2 border rounded text-sm"
+                    value={formData.camera_model}
+                    onChange={(e) =>
+                      setFormData({ ...formData, camera_model: e.target.value })
+                    }
+                  />
+                </div>
               </>
             )}
-
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">
-                Shutter
-              </label>
-              <input
-                type="text"
-                placeholder="1/500"
-                className="w-full p-2 border rounded text-sm"
-                value={formData.shutter_speed}
-                onChange={(e) =>
-                  setFormData({ ...formData, shutter_speed: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">
-                Aperture
-              </label>
-              <input
-                type="text"
-                placeholder="f/2.8"
-                className="w-full p-2 border rounded text-sm"
-                value={formData.aperture}
-                onChange={(e) =>
-                  setFormData({ ...formData, aperture: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">ISO</label>
-              <input
-                type="number"
-                placeholder="100"
-                className="w-full p-2 border rounded text-sm"
-                value={formData.iso}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    iso: parseInt(e.target.value) || 0,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">
-                Focal Length
-              </label>
-              <input
-                type="text"
-                placeholder="50mm"
-                className="w-full p-2 border rounded text-sm"
-                value={formData.focal_length}
-                onChange={(e) =>
-                  setFormData({ ...formData, focal_length: e.target.value })
-                }
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-xs text-gray-500 mb-1">Camera</label>
-              <input
-                type="text"
-                placeholder="Nikon D850"
-                className="w-full p-2 border rounded text-sm"
-                value={formData.camera_model}
-                onChange={(e) =>
-                  setFormData({ ...formData, camera_model: e.target.value })
-                }
-              />
-            </div>
           </div>
         )}
         <Button
