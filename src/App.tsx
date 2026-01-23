@@ -6,7 +6,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import MyPhotos from "./pages/MyPhotos";
 import UploadPhoto from "./pages/UploadPhoto";
-import AddAirport from "./pages/AddAirport";
 import AddAircraftType from "./pages/AddAircraftType";
 
 function App() {
@@ -34,7 +33,6 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="photos" element={<MyPhotos />} />
           <Route path="upload" element={<UploadPhoto />} />
-          <Route path="add-airport" element={<AddAirport />} />
           <Route path="add-aircraft-type" element={<AddAircraftType />} />
         </Route>
       </Route>

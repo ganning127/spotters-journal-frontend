@@ -39,3 +39,24 @@ export interface AuthResponse {
   token: string;
   user: User;
 }
+
+export interface UploadPhotoRequest {
+  registration: string;
+  airport_code: string;
+  image_url: string;
+  taken_at?: string;
+  shutter_speed?: string;
+  iso?: number;
+  aperture?: string;
+  camera_model?: string;
+  focal_length?: string;
+  airline?: string;
+
+  aircraft_type_id?: string; // ICAO Code
+  manufactured_date?: string;
+
+  airport_icao_code?: string;
+  airport_name?: string;
+  airport_latitude?: number;
+  airport_longitude?: number;
+}
