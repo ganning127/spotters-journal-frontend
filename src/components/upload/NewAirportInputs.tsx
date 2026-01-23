@@ -1,5 +1,4 @@
 import type { UploadPhotoRequest } from "@/types";
-import { FormLabel } from "../FormLabel";
 import { Field, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
 
