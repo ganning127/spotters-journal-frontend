@@ -6,7 +6,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import MyPhotos from "./pages/MyPhotos";
 import UploadPhoto from "./pages/UploadPhoto";
-import AddAircraftType from "./pages/AddAircraftType";
 
 function App() {
   return (
@@ -18,7 +17,7 @@ function App() {
           element={
             <div className="text-center mt-20">
               <h2 className="text-3xl font-bold mb-4">
-                Welcome to PlaneTracker
+                Welcome to Spotter&apos;s Journal
               </h2>
               <p className="text-gray-500">
                 Log your sightings. Track your fleet.
@@ -33,7 +32,6 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="photos" element={<MyPhotos />} />
           <Route path="upload" element={<UploadPhoto />} />
-          <Route path="add-aircraft-type" element={<AddAircraftType />} />
         </Route>
       </Route>
     </Routes>

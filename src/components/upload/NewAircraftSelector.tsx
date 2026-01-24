@@ -63,7 +63,7 @@ export const NewAircraftSelector = ({
   }, [formData.registration, airlines]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
       <div>
         <FieldSet>
           <Field>Aircraft Type</Field>
@@ -93,7 +93,7 @@ export const NewAircraftSelector = ({
       </div>
       <div>
         <FieldSet>
-          <Field>Manufactured Date</Field>
+          <Field>Manufactured/First Flight Date</Field>
           <Input
             type="date"
             value={formData.manufactured_date}
