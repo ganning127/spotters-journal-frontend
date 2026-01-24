@@ -50,7 +50,7 @@ export interface UploadPhotoRequest {
   aperture?: string;
   camera_model?: string;
   focal_length?: string;
-  airline?: string;
+  airline_code?: string;
 
   aircraft_type_id?: string; // ICAO Code
   manufactured_date?: string;
@@ -59,4 +59,11 @@ export interface UploadPhotoRequest {
   airport_name?: string;
   airport_latitude?: number;
   airport_longitude?: number;
+}
+
+export interface Airline {
+  code: string; // ICAO 3-letter Code
+  name: string; // friendly readable name
+  reg_suffix?: string[]; // heuristic, registration suffix for this airline
+  reg_prefix?: string[]; // heuristic, registration prefix for this airline
 }

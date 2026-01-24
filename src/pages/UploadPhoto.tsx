@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import api from "../api/axios";
-import type { AircraftType, UploadPhotoRequest } from "../types";
+import type { UploadPhotoRequest } from "../types";
 import { Button } from "../components/ui/button";
 import { AirportSelector } from "@/components/upload/AirportSelector";
 import { NewAirportInputs } from "@/components/upload/NewAirportInputs";
@@ -9,18 +9,10 @@ import { Field, FieldDescription, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Section } from "@/components/upload/Section";
 import {} from "@radix-ui/react-select";
-import {
-  Select,
-  SelectItem,
-  SelectContent,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AddImageExif } from "@/components/upload/AddImageExif";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircleIcon } from "lucide-react";
+import { AddRegistration } from "@/components/upload/AddRegistration";
 
 const defaultData = {
   registration: "",
@@ -32,72 +24,22 @@ const defaultData = {
   aperture: "",
   camera_model: "",
   focal_length: "",
+  airline_code: "",
 
   aircraft_type_id: "",
   manufactured_date: "",
+
+  airport_icao_code: "",
+  airport_name: "",
+  airport_latitude: 0,
+  airport_longitude: 0,
 } as UploadPhotoRequest;
 
 export default function UploadPhoto() {
   // Data State
-  const [aircraftTypes, setAircraftTypes] = useState<AircraftType[]>([]);
-
-  // Autocomplete & New Aircraft State
-  const [suggestions, setSuggestions] = useState<
-    {
-      registration: string;
-      type_id: string;
-      Photo?: { taken_at: string; image_url: string; airport_code: string }[];
-    }[]
-  >([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isNewAircraft, setIsNewAircraft] = useState(false);
-  const skipSearchRef = useRef(false);
-
-  // Form State
   const [formData, setFormData] = useState(defaultData);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const typeRes = await api.get<AircraftType[]>("/aircraft-types");
-        setAircraftTypes(typeRes.data);
-      } catch (err) {
-        console.error("Failed to load form data", err);
-      } finally {
-      }
-    };
-    fetchData();
-  }, []);
-
   // 2. Search & New Aircraft Detection Logic
-  useEffect(() => {
-    if (skipSearchRef.current) {
-      skipSearchRef.current = false;
-      return;
-    }
-
-    const searchRegistrations = async () => {
-      // Don't search for very short strings
-      if (formData.registration.length < 3) {
-        setSuggestions([]);
-        setIsNewAircraft(false);
-        return;
-      }
-      try {
-        const res = await api.get(
-          `/aircraft/search?q=${formData.registration}`,
-        );
-        setSuggestions(res.data);
-        setShowSuggestions(true);
-        setIsNewAircraft(res.data.length === 0);
-      } catch (error) {
-        console.error("Search failed", error);
-      }
-    };
-
-    const timeoutId = setTimeout(searchRegistrations, 300);
-    return () => clearTimeout(timeoutId);
-  }, [formData.registration]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -111,143 +53,11 @@ export default function UploadPhoto() {
   };
 
   const isNewAirport = formData.airport_code === "other";
-  let mostRecentPhoto;
-
-  let filteredSuggestions = suggestions.filter(
-    (item) => item.registration === formData.registration,
-  );
-  if (filteredSuggestions.length > 0) {
-    const item = filteredSuggestions[0];
-    if (item.Photo) {
-      mostRecentPhoto = item.Photo[0];
-    }
-  }
 
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Upload Photo</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Section className="bg-purple-50">
-          <FieldSet>
-            <Field>Registration</Field>
-            <Input
-              type="text"
-              placeholder="N374FR"
-              required
-              value={formData.registration}
-              onChange={(e) => {
-                setFormData({
-                  ...formData,
-                  registration: e.target.value.toUpperCase(),
-                });
-              }}
-            />
-          </FieldSet>
-
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="flex flex-row flex-wrap gap-2 mt-2 text-sm text-gray-600">
-              {suggestions.map((item) => (
-                <div
-                  key={item.registration}
-                  className="px-3 py-1 bg-purple-200 rounded-lg hover:bg-purple-300 cursor-pointer"
-                  onClick={() => {
-                    skipSearchRef.current = true;
-                    setFormData({
-                      ...formData,
-                      registration: item.registration,
-                    });
-                    setShowSuggestions(false);
-                  }}
-                >
-                  {item.registration}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {mostRecentPhoto && (
-            <>
-              <Alert className="w-full mt-2 bg-purple-100 border-none">
-                <AlertCircleIcon />
-                <AlertTitle>
-                  Most recent photo for {formData.registration}
-                </AlertTitle>
-                <AlertDescription>
-                  <img
-                    src={mostRecentPhoto.image_url}
-                    alt="Most recent aircraft"
-                    className="w-1/2 mx-auto border border-purple-300 rounded"
-                  />
-                  <p className="text-center w-full">
-                    {mostRecentPhoto.airport_code} •{" "}
-                    {new Date(mostRecentPhoto.taken_at).toLocaleString()}
-                  </p>
-                </AlertDescription>
-              </Alert>
-            </>
-          )}
-
-          {isNewAircraft && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <FieldSet>
-                  <Field>Aircraft Type</Field>
-
-                  <Select
-                    required={isNewAircraft}
-                    value={formData.aircraft_type_id}
-                    onValueChange={(value) => {
-                      setFormData({
-                        ...formData,
-                        aircraft_type_id: value,
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="w-full p-2 rounded-lg text-md">
-                      <SelectValue placeholder="Select Aircraft..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {aircraftTypes.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.manufacturer} {t.type} ({t.variant || t.id})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FieldSet>
-              </div>
-              <div>
-                <FieldSet>
-                  <Field>Manufactured Date</Field>
-                  <Input
-                    type="date"
-                    value={formData.manufactured_date}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        manufactured_date: e.target.value,
-                      })
-                    }
-                  />
-                </FieldSet>
-              </div>
-            </div>
-          )}
-        </Section>
-
-        <Section className="bg-blue-50">
-          <FieldSet>
-            <Field>Airport</Field>
-            <AirportSelector formData={formData} setFormData={setFormData} />
-          </FieldSet>
-
-          {isNewAirport && (
-            <div className="mt-2">
-              <NewAirportInputs setFormData={setFormData} formData={formData} />
-            </div>
-          )}
-        </Section>
-
         <Section className="bg-green-50">
           <FieldSet>
             <Field>Image URL</Field>
@@ -291,6 +101,23 @@ export default function UploadPhoto() {
                 <AddImageExif formData={formData} setFormData={setFormData} />
               </Section>
             </>
+          )}
+        </Section>
+
+        <Section className="bg-purple-50">
+          <AddRegistration formData={formData} setFormData={setFormData} />
+        </Section>
+
+        <Section className="bg-blue-50">
+          <FieldSet>
+            <Field>Airport</Field>
+            <AirportSelector formData={formData} setFormData={setFormData} />
+          </FieldSet>
+
+          {isNewAirport && (
+            <div className="mt-2">
+              <NewAirportInputs setFormData={setFormData} formData={formData} />
+            </div>
           )}
         </Section>
 
