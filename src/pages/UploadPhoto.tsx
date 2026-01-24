@@ -114,11 +114,11 @@ export default function UploadPhoto() {
             <AirportSelector formData={formData} setFormData={setFormData} />
           </FieldSet>
 
-          {isNewAirport && (
+          {/* {isNewAirport && (
             <div className="mt-2">
               <NewAirportInputs setFormData={setFormData} formData={formData} />
             </div>
-          )}
+          )} */}
         </Section>
 
         <Button

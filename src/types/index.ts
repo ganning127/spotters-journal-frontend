@@ -67,3 +67,8 @@ export interface Airline {
   reg_suffix?: string[]; // heuristic, registration suffix for this airline
   reg_prefix?: string[]; // heuristic, registration prefix for this airline
 }
+
+export interface BasicAirportInfo {
+  icao_code: string;
+  name: string;
+}
