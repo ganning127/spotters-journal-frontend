@@ -4,7 +4,6 @@ import api from "../api/axios";
 import type { UploadPhotoRequest } from "../types";
 import { Button } from "../components/ui/button";
 import { AirportSelector } from "@/components/upload/AirportSelector";
-import { NewAirportInputs } from "@/components/upload/NewAirportInputs";
 import { Field, FieldDescription, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Section } from "@/components/upload/Section";
@@ -51,8 +50,6 @@ export default function UploadPhoto() {
       alert("Upload failed");
     }
   };
-
-  const isNewAirport = formData.airport_code === "other";
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -113,12 +110,6 @@ export default function UploadPhoto() {
             <Field>Airport</Field>
             <AirportSelector formData={formData} setFormData={setFormData} />
           </FieldSet>
-
-          {/* {isNewAirport && (
-            <div className="mt-2">
-              <NewAirportInputs setFormData={setFormData} formData={formData} />
-            </div>
-          )} */}
         </Section>
 
         <Button
