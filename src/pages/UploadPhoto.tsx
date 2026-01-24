@@ -19,6 +19,8 @@ import {
 import { AddImageExif } from "@/components/upload/AddImageExif";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 const defaultData = {
   registration: "",
@@ -40,14 +42,16 @@ export default function UploadPhoto() {
   const [aircraftTypes, setAircraftTypes] = useState<AircraftType[]>([]);
 
   // Autocomplete & New Aircraft State
-  const [suggestions, setSuggestions] = useState<{ registration: string }[]>(
-    [],
-  );
+  const [suggestions, setSuggestions] = useState<
+    {
+      registration: string;
+      type_id: string;
+      Photo?: { taken_at: string; image_url: string; airport_code: string }[];
+    }[]
+  >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isNewAircraft, setIsNewAircraft] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  // Metadata extraction state
+  const skipSearchRef = useRef(false);
 
   // Form State
   const [formData, setFormData] = useState(defaultData);
@@ -63,22 +67,15 @@ export default function UploadPhoto() {
       }
     };
     fetchData();
-
-    // Click outside listener for autocomplete
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // 2. Search & New Aircraft Detection Logic
   useEffect(() => {
+    if (skipSearchRef.current) {
+      skipSearchRef.current = false;
+      return;
+    }
+
     const searchRegistrations = async () => {
       // Don't search for very short strings
       if (formData.registration.length < 3) {
@@ -92,17 +89,7 @@ export default function UploadPhoto() {
         );
         setSuggestions(res.data);
         setShowSuggestions(true);
-
-        // LOGIC: A plane is "New/Incomplete" if:
-        // 1. No results found (length === 0)
-        // 2. OR Result found, but the exact match has a NULL type_id (skeleton entry)
-        const exactMatch = res.data.find(
-          (p: any) => p.registration === formData.registration,
-        );
-        const needsDetails =
-          res.data.length === 0 || (exactMatch && !exactMatch.type_id);
-
-        setIsNewAircraft(needsDetails);
+        setIsNewAircraft(res.data.length === 0);
       } catch (error) {
         console.error("Search failed", error);
       }
@@ -124,55 +111,81 @@ export default function UploadPhoto() {
   };
 
   const isNewAirport = formData.airport_code === "other";
+  let mostRecentPhoto;
+
+  let filteredSuggestions = suggestions.filter(
+    (item) => item.registration === formData.registration,
+  );
+  if (filteredSuggestions.length > 0) {
+    const item = filteredSuggestions[0];
+    if (item.Photo) {
+      mostRecentPhoto = item.Photo[0];
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Upload Photo</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Section className="bg-purple-50">
-          <div className="relative" ref={wrapperRef}>
-            <FieldSet>
-              <Field>Registration</Field>
-              <Input
-                type="text"
-                placeholder="N374FR"
-                required
-                value={formData.registration}
-                onChange={(e) => {
-                  setFormData({
-                    ...formData,
-                    registration: e.target.value.toUpperCase(),
-                  });
-                }}
-                onFocus={() =>
-                  formData.registration.length >= 2 && setShowSuggestions(true)
-                }
-              />
-            </FieldSet>
+          <FieldSet>
+            <Field>Registration</Field>
+            <Input
+              type="text"
+              placeholder="N374FR"
+              required
+              value={formData.registration}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  registration: e.target.value.toUpperCase(),
+                });
+              }}
+            />
+          </FieldSet>
 
-            {showSuggestions && suggestions.length > 0 && (
-              <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-b shadow-lg mt-1 max-h-48 overflow-y-auto">
-                {suggestions.map((item) => (
-                  <li
-                    key={item.registration}
-                    className="p-2 hover:bg-gray-100 cursor-pointer font-mono"
-                    onClick={() => {
-                      setFormData({
-                        ...formData,
-                        registration: item.registration,
-                      });
-                      setShowSuggestions(false);
-                      // If selected from list, we need to check if that specific one is complete
-                      // (Usually searching again or passing data in suggestions is cleaner,
-                      // but for now, the useEffect will re-run and verify completeness)
-                    }}
-                  >
-                    {item.registration}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="flex flex-row flex-wrap gap-2 mt-2 text-sm text-gray-600">
+              {suggestions.map((item) => (
+                <div
+                  key={item.registration}
+                  className="px-3 py-1 bg-purple-200 rounded-lg hover:bg-purple-300 cursor-pointer"
+                  onClick={() => {
+                    skipSearchRef.current = true;
+                    setFormData({
+                      ...formData,
+                      registration: item.registration,
+                    });
+                    setShowSuggestions(false);
+                  }}
+                >
+                  {item.registration}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {mostRecentPhoto && (
+            <>
+              <Alert className="w-full mt-2 bg-purple-100 border-none">
+                <AlertCircleIcon />
+                <AlertTitle>
+                  Most recent photo for {formData.registration}
+                </AlertTitle>
+                <AlertDescription>
+                  <img
+                    src={mostRecentPhoto.image_url}
+                    alt="Most recent aircraft"
+                    className="w-1/2 mx-auto border border-purple-300 rounded"
+                  />
+                  <p className="text-center w-full">
+                    {mostRecentPhoto.airport_code} •{" "}
+                    {new Date(mostRecentPhoto.taken_at).toLocaleString()}
+                  </p>
+                </AlertDescription>
+              </Alert>
+            </>
+          )}
 
           {isNewAircraft && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
