@@ -4,6 +4,9 @@ import type { Photo } from "../types";
 import { Button } from "../components/ui/button"; // Assuming you have this
 import { Spinner } from "../components/ui/spinner"; // Assuming you have this
 import { PhotoCard } from "@/components/PhotoCard";
+import { AirlineCounts } from "@/components/my-photos/AirlineCounts";
+import { AirplaneCounts } from "@/components/my-photos/AirplaneCounts";
+import { PhotoCounts } from "@/components/my-photos/PhotoCounts";
 
 interface PaginationMeta {
   page: number;
@@ -58,10 +61,17 @@ export default function MyPhotos() {
 
   return (
     <div>
+      <h1 className="text-3xl font-bold">Statistics</h1>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 grid-cols-1 gap-8 mb-8">
+        <AirlineCounts />
+        <AirplaneCounts />
+        <PhotoCounts />
+      </div>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <h1 className="text-3xl font-bold">My Collection</h1>
 
-        {/* Search Bar */}
         <div className="relative w-full md:w-64">
           <input
             type="text"

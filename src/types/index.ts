@@ -72,3 +72,23 @@ export interface BasicAirportInfo {
   icao_code: string;
   name: string;
 }
+
+export interface AirlineCountsResponse {
+  airline_code: string;
+  airline_name: string;
+  airline_color: string;
+  photo_count: number;
+}
+
+export interface AirplaneCountsResponse {
+  airplane_code: string;
+  airplane_manufacturer: string;
+  airplane_type: string;
+  airplane_variant: string;
+  photo_count: number;
+}
+
+export interface PhotoCountItem {
+  photo_year: number;
+  photo_count: number;
+}

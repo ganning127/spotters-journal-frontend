@@ -4,30 +4,25 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Layout() {
   const { user, logout } = useAuth();
-  const isAdmin = user?.type === "admin";
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       <nav className="border-b border-gray-200 bg-white">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="text-xl font-bold tracking-tight">
-            Spotter&apos;s Journal
+            <div className="flex items-center gap-2">
+              <img
+                src="/cropped_logo.png"
+                alt="Spotter's Journal Logo"
+                className="h-12 w-auto"
+              />
+              <p className="text-xl">Spotter&apos;s Journal</p>
+            </div>
           </Link>
 
-          <div className="flex gap-6 text-sm font-medium text-gray-600">
+          <div className="flex gap-6 text-sm font-medium text-gray-700">
             {user ? (
               <>
-                {isAdmin && (
-                  <>
-                    <Link
-                      to="/add-aircraft-type"
-                      className="text-blue-600 hover:text-blue-800 transition"
-                    >
-                      + Aircraft Type
-                    </Link>
-                  </>
-                )}
-
                 <Link to="/photos" className="hover:text-black transition">
                   My Photos
                 </Link>
