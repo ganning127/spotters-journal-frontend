@@ -35,19 +35,20 @@ const defaultData = {
 } as UploadPhotoRequest;
 
 export default function UploadPhoto() {
-  // Data State
   const [formData, setFormData] = useState(defaultData);
-
-  // 2. Search & New Aircraft Detection Logic
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
+      setLoading(true);
       await api.post("/photos", formData);
       toast.success("Photo uploaded successfully!");
       setFormData(defaultData);
     } catch (err) {
       alert("Upload failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -123,7 +124,7 @@ export default function UploadPhoto() {
             formData.airport_code.length === 0
           }
         >
-          Add Photo
+          {loading ? "Uploading..." : "Add Photo"}
         </Button>
       </form>
     </div>

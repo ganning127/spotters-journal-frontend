@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import MyPhotos from "./pages/MyPhotos";
 import UploadPhoto from "./pages/UploadPhoto";
+import { Stats } from "./pages/Stats";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="photos" element={<MyPhotos />} />
           <Route path="upload" element={<UploadPhoto />} />
+          <Route path="stats" element={<Stats />} />
         </Route>
       </Route>
     </Routes>

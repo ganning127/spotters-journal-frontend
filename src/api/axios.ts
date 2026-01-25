@@ -1,4 +1,5 @@
 import axios from "axios";
+import qs from "qs";
 
 export const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
@@ -7,6 +8,9 @@ const api = axios.create({
   baseURL: BACKEND_URL,
   headers: {
     "Content-Type": "application/json",
+  },
+  paramsSerializer: {
+    serialize: (params) => qs.stringify(params, { arrayFormat: "repeat" }),
   },
 });
 

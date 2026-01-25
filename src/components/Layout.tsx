@@ -1,6 +1,13 @@
 // src/components/Layout.tsx
 import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../components/ui/dropdown-menu";
+import { Button } from "./ui/button";
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -20,21 +27,43 @@ export default function Layout() {
             </div>
           </Link>
 
+          {user && (
+            <div className="flex gap-4">
+              <Link to="/stats" className="hover:text-black transition">
+                Stats
+              </Link>
+              <Link to="/photos" className="hover:text-black transition">
+                Mine
+              </Link>
+              <Link to="/upload" className="hover:text-black transition">
+                Upload
+              </Link>
+            </div>
+          )}
+
           <div className="flex gap-6 text-sm font-medium text-gray-700">
             {user ? (
               <>
-                <Link to="/photos" className="hover:text-black transition">
-                  My Photos
-                </Link>
-                <Link to="/upload" className="hover:text-black transition">
-                  Upload
-                </Link>
-                <button
-                  onClick={logout}
-                  className="hover:text-red-600 transition"
-                >
-                  Logout
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shadow-none cursor-pointer"
+                    >
+                      {user.username}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={logout}
+                      variant="destructive"
+                      className="cursor-pointer"
+                    >
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>

@@ -18,6 +18,10 @@ export const AirportSelector = ({
   const [selected, setSelected] = useState<BasicAirportInfo | null>(null);
 
   useEffect(() => {
+    if (formData.airport_code.length === 0) {
+      setSelected(null);
+    }
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -39,6 +43,7 @@ export const AirportSelector = ({
       <div className="flex items-center justify-between">
         {selected.icao_code} ({selected.name})
         <Button
+          className="cursor-pointer"
           variant="destructive"
           size="sm"
           onClick={() => {
@@ -46,7 +51,6 @@ export const AirportSelector = ({
               ...formData,
               airport_code: "",
             });
-            setSelected(null);
           }}
         >
           Change

@@ -7,26 +7,35 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
   return (
     <>
       {/* 1. The Trigger Card */}
-      <div className="group border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md bg-white">
-        <div className="aspect-w-4 aspect-h-3 bg-gray-200 relative">
+      <div className="group relative border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md bg-white">
+        {/* Image Container */}
+        <div className="aspect-w-4 aspect-h-3 relative">
           <img
             onClick={() => setIsOpen(true)}
             src={photo.image_url}
-            alt={photo.SpecificAircraft.registration}
+            alt={photo.registration}
             className="object-cover w-full h-64 cursor-pointer"
           />
+
+          {/* Top Right Registration Badge */}
           <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-            {photo.SpecificAircraft.registration}
+            {photo.registration}
           </div>
-        </div>
-        <div className="p-4">
-          <h3 className="font-bold text-lg mb-1">{getAircraftName(photo)}</h3>
-          <p className="text-sm text-gray-500 mb-3">
-            {photo.Airport.name} ({photo.Airport.icao_code})
-          </p>
-          <div className="border-t pt-3 flex justify-between items-center text-xs text-gray-400">
-            <span>{new Date(photo.taken_at).toLocaleDateString()}</span>
-            {photo.camera_model && <span>{photo.camera_model}</span>}
+
+          {/* Bottom Gradient Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
+            <div className="flex flex-row justify-between items-end text-white">
+              <div>
+                <h3 className="text-md leading-tight">
+                  {getAircraftName(photo)}
+                </h3>
+              </div>
+
+              <p className="text-xs opacity-90">
+                {photo.Airport.icao_code} •{" "}
+                {new Date(photo.taken_at).toLocaleDateString()}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -55,7 +64,7 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
         >
           <img
             src={photo.image_url}
-            alt={photo.SpecificAircraft.registration}
+            alt={photo.registration}
             className="max-w-full max-h-[90vh] object-contain rounded-sm shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             loading="lazy"
@@ -63,9 +72,7 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
 
           <div className="mt-4 text-white text-center">
             <p className="font-semibold text-lg">{getAircraftName(photo)}</p>
-            <p className="text-sm text-gray-400">
-              {photo.SpecificAircraft.registration}
-            </p>
+            <p className="text-sm text-gray-400">{photo.registration}</p>
             <p className="text-sm text-gray-400">
               {getAirportName(photo.Airport)}
             </p>
@@ -83,14 +90,19 @@ const getAircraftName = (photo: Photo) => {
 
   let result = "";
   if (manufacturer) {
-    result += manufacturer[0].toUpperCase();
+    if (manufacturer == "Airbus") {
+      result += "A";
+    } else if (manufacturer == "Boeing") {
+    } else {
+      result += manufacturer + " ";
+    }
   }
   if (type) {
     result += type;
   }
   if (variant) {
-    if (variant == "NEO") {
-      result += variant[0];
+    if (variant == "neo") {
+      result += "N";
     } else {
       result += `-${variant}`;
     }

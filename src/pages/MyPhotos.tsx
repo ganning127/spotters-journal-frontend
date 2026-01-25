@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
-import type { Photo } from "../types";
+import type { AirplaneCountsResponse, Photo } from "../types";
 import { Button } from "../components/ui/button"; // Assuming you have this
 import { Spinner } from "../components/ui/spinner"; // Assuming you have this
 import { PhotoCard } from "@/components/PhotoCard";
-import { AirlineCounts } from "@/components/my-photos/AirlineCounts";
-import { AirplaneCounts } from "@/components/my-photos/AirplaneCounts";
-import { PhotoCounts } from "@/components/my-photos/PhotoCounts";
 
 interface PaginationMeta {
   page: number;
@@ -29,6 +26,12 @@ export default function MyPhotos() {
     total: 0,
     totalPages: 1,
   });
+  const [aircraftTypesFilter, setAircraftTypesFilter] = useState<
+    AirplaneCountsResponse[]
+  >([]);
+  const [selectedAircraftType, setSelectedAircraftType] = useState<string[]>(
+    [],
+  );
 
   // Debounce logic: Only update search query after user stops typing for 500ms
   useEffect(() => {
@@ -39,7 +42,21 @@ export default function MyPhotos() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  // Fetch Photos
+  useEffect(() => {
+    const fetchAircraftTypes = async () => {
+      try {
+        const res = await api.get<AirplaneCountsResponse[]>(
+          `/photos/airplane-counts?limit=0`,
+        );
+        setAircraftTypesFilter(res.data);
+      } catch (error) {
+        console.error("Failed to fetch aircraft types", error);
+      }
+    };
+
+    fetchAircraftTypes();
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     // Pass params to backend
@@ -49,6 +66,7 @@ export default function MyPhotos() {
           page: page,
           limit: 9,
           search: debouncedSearch,
+          aircraftTypeFilter: JSON.stringify(selectedAircraftType),
         },
       })
       .then((res) => {
@@ -57,29 +75,58 @@ export default function MyPhotos() {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, [page, debouncedSearch]); // Re-run when Page or Search changes
+  }, [page, debouncedSearch, selectedAircraftType]); // Re-run when Page, Search, or Filter changes
 
   return (
     <div>
-      <h1 className="text-3xl font-bold">Statistics</h1>
+      <div className="mb-4">
+        <div>
+          <h1 className="text-3xl font-bold">My Collection</h1>
+          <p className="text-gray-600 text-sm mt-1">
+            You have {meta.total} photos{" "}
+            {selectedAircraftType.length > 0 || debouncedSearch.length > 0
+              ? "matching your criteria"
+              : "total"}
+            .
+          </p>
+        </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 grid-cols-1 gap-8 mb-8">
-        <AirlineCounts />
-        <AirplaneCounts />
-        <PhotoCounts />
-      </div>
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <h1 className="text-3xl font-bold">My Collection</h1>
-
-        <div className="relative w-full md:w-64">
+        <div className="relative w-full mt-2">
           <input
             type="text"
             placeholder="Search registration..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full p-2 pl-3 border border-gray-300 rounded focus:border-black focus:outline-none"
+            className="w-full p-2 pl-3 border border-gray-300 rounded-lg focus:border-black focus:outline-none"
           />
+        </div>
+
+        <div className="flex flex-row gap-1 flex-wrap mt-2">
+          {aircraftTypesFilter.map((aircraft) => {
+            const isSelected = selectedAircraftType.includes(
+              aircraft.airplane_code,
+            );
+            return (
+              <Button
+                key={aircraft.airplane_code}
+                variant={isSelected ? "default" : "outline"}
+                size="sm"
+                className="cursor-pointer"
+                onClick={() =>
+                  setSelectedAircraftType((prev) => {
+                    if (prev.includes(aircraft.airplane_code)) {
+                      return prev.filter(
+                        (code) => code !== aircraft.airplane_code,
+                      );
+                    }
+                    return [...prev, aircraft.airplane_code];
+                  })
+                }
+              >
+                {aircraft.airplane_code} ({aircraft.photo_count})
+              </Button>
+            );
+          })}
         </div>
       </div>
 
@@ -90,9 +137,12 @@ export default function MyPhotos() {
       ) : photos.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-lg border border-dashed border-gray-300">
           <p className="text-gray-500 mb-2">No photos found.</p>
-          {debouncedSearch && (
+          {(debouncedSearch || selectedAircraftType.length > 0) && (
             <button
-              onClick={() => setSearch("")}
+              onClick={() => {
+                setSearch("");
+                setSelectedAircraftType([]);
+              }}
               className="text-blue-600 hover:underline text-sm"
             >
               Clear search
@@ -101,14 +151,12 @@ export default function MyPhotos() {
         </div>
       ) : (
         <>
-          {/* Photo Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
             {photos.map((photo) => (
               <PhotoCard key={photo.id} photo={photo} />
             ))}
           </div>
 
-          {/* Pagination Controls */}
           {meta.totalPages > 1 && (
             <div className="flex justify-center items-center gap-4 mt-12">
               <Button
