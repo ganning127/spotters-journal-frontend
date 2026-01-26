@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
+import { toast } from "sonner";
 
 export const NewAircraftSelector = ({
   formData,
@@ -20,6 +21,7 @@ export const NewAircraftSelector = ({
 }) => {
   const [aircraftTypes, setAircraftTypes] = useState<AircraftType[]>([]);
   const [airlines, setAirlines] = useState<Airline[]>([]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -31,6 +33,36 @@ export const NewAircraftSelector = ({
         console.error("Failed to load form data", err);
       }
     };
+
+    const prePopulateData = async () => {
+      if (formData.registration === "") return;
+      try {
+        const res = await api.get(
+          `/aircraft/new-registration?q=${formData.registration}`,
+        );
+        const data = res.data;
+        console.log("Pre-populated data:", data);
+
+        if (data.found) {
+          setFormData({
+            ...formData,
+            aircraft_type_id: data.aircraft_type_id,
+            airline_code: data.airline_code,
+          });
+        } else {
+          toast.error("No data found for " + formData.registration);
+          setFormData({
+            ...formData,
+            aircraft_type_id: "",
+            airline_code: "",
+          });
+        }
+      } catch (error) {
+        console.error("Pre-population failed", error);
+      }
+    };
+
+    prePopulateData();
     fetchData();
   }, []);
 
