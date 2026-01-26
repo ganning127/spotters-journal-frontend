@@ -24,16 +24,19 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
 
           {/* Bottom Gradient Overlay */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
-            <div className="flex flex-row justify-between items-end text-white">
-              <div>
-                <h3 className="text-md leading-tight">
-                  {getAircraftName(photo)}
-                </h3>
-              </div>
+            <div className="flex flex-row justify-between items-center text-white">
+              <h3 className="text-sm md:hidden">
+                {getAircraftName(photo, true)}
+              </h3>
+              <h3 className="text-sm md:block hidden">
+                {getAircraftName(photo, false)}
+              </h3>
 
               <p className="text-xs opacity-90">
-                {photo.Airport.icao_code} •{" "}
-                {new Date(photo.taken_at).toLocaleDateString()}
+                <span className="hidden md:contents">
+                  {photo.Airport.icao_code} •{" "}
+                </span>
+                <span>{new Date(photo.taken_at).toLocaleDateString()}</span>
               </p>
             </div>
           </div>
@@ -71,7 +74,9 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
           />
 
           <div className="mt-4 text-white text-center">
-            <p className="font-semibold text-lg">{getAircraftName(photo)}</p>
+            <p className="font-semibold text-lg">
+              {getAircraftName(photo, false)}
+            </p>
             <p className="text-sm text-gray-400">{photo.registration}</p>
             <p className="text-sm text-gray-400">
               {getAirportName(photo.Airport)}
@@ -83,15 +88,21 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
   );
 };
 
-const getAircraftName = (photo: Photo) => {
+const getAircraftName = (photo: Photo, short: boolean) => {
   const manufacturer = photo.SpecificAircraft.AircraftType.manufacturer;
   const type = photo.SpecificAircraft.AircraftType.type;
   const variant = photo.SpecificAircraft.AircraftType.variant;
+
+  if (short) {
+    return photo.SpecificAircraft.AircraftType.id;
+  }
 
   let result = "";
   if (manufacturer) {
     if (manufacturer == "Airbus") {
       result += "A";
+    } else if (manufacturer == "Embraer") {
+      result += "E";
     } else if (manufacturer == "Boeing") {
     } else {
       result += manufacturer + " ";
