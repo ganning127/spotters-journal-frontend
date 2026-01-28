@@ -41,7 +41,6 @@ export const NewAircraftSelector = ({
           `/aircraft/new-registration?q=${formData.registration}`,
         );
         const data = res.data;
-        console.log("Pre-populated data:", data);
 
         if (data.found) {
           setFormData({

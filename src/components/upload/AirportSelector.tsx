@@ -6,6 +6,7 @@ import { Input } from "../ui/input";
 import { Spinner } from "../ui/spinner";
 import { Button } from "../ui/button";
 
+const LAST_USED_AIRPORT_LOCALSTORAGE_KEY = "lastUsedAirport";
 export const AirportSelector = ({
   formData,
   setFormData,
@@ -18,8 +19,20 @@ export const AirportSelector = ({
   const [selected, setSelected] = useState<BasicAirportInfo | null>(null);
 
   useEffect(() => {
-    if (formData.airport_code.length === 0) {
-      setSelected(null);
+    const lastUsedAirport = localStorage.getItem(
+      LAST_USED_AIRPORT_LOCALSTORAGE_KEY,
+    );
+    if (lastUsedAirport) {
+      const parsedAirport = JSON.parse(lastUsedAirport);
+      setFormData({
+        ...formData,
+        airport_code: parsedAirport.icao_code,
+      });
+      setSelected({
+        icao_code: parsedAirport.icao_code,
+        name: parsedAirport.name,
+      });
+      return;
     }
 
     const fetchData = async () => {
@@ -51,6 +64,8 @@ export const AirportSelector = ({
               ...formData,
               airport_code: "",
             });
+            setSelected(null);
+            localStorage.removeItem(LAST_USED_AIRPORT_LOCALSTORAGE_KEY);
           }}
         >
           Change
@@ -89,6 +104,13 @@ export const AirportSelector = ({
                     airport_code: airport.icao_code,
                   });
                   setSelected(airport);
+                  localStorage.setItem(
+                    LAST_USED_AIRPORT_LOCALSTORAGE_KEY,
+                    JSON.stringify({
+                      icao_code: airport.icao_code,
+                      name: airport.name,
+                    }),
+                  );
                 }}
               >
                 {airport.icao_code} ({airport.name})
