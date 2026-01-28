@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
-import { toast } from "sonner";
 
 export const NewAircraftSelector = ({
   formData,
@@ -34,11 +33,17 @@ export const NewAircraftSelector = ({
       }
     };
 
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (airlines.length === 0) return;
     const prePopulateData = async () => {
-      if (formData.registration === "") return;
+      const registration = formData.registration.toUpperCase();
+
       try {
         const res = await api.get(
-          `/aircraft/new-registration?q=${formData.registration}`,
+          `/aircraft/new-registration?q=${registration}`,
         );
         const data = res.data;
 
@@ -48,13 +53,32 @@ export const NewAircraftSelector = ({
             aircraft_type_id: data.aircraft_type_id,
             airline_code: data.airline_code,
           });
-        } else {
-          toast.error("No data found for " + formData.registration);
-          setFormData({
-            ...formData,
-            aircraft_type_id: "",
-            airline_code: "",
+          // even though found, might still not have airline_code
+        }
+
+        if (!data.airline_code) {
+          const matchedAirline = airlines.find((airline) => {
+            if (airline.reg_prefix) {
+              let found = airline.reg_prefix.find((prefix) =>
+                registration.startsWith(prefix),
+              );
+              if (found) return true;
+            }
+
+            if (airline.reg_suffix) {
+              let found = airline.reg_suffix.find((suffix) => {
+                return registration.endsWith(suffix);
+              });
+              if (found) return true;
+            }
           });
+
+          if (matchedAirline) {
+            setFormData({
+              ...formData,
+              airline_code: matchedAirline.code,
+            });
+          }
         }
       } catch (error) {
         console.error("Pre-population failed", error);
@@ -62,35 +86,6 @@ export const NewAircraftSelector = ({
     };
 
     prePopulateData();
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (airlines.length === 0) return;
-
-    const registration = formData.registration.toUpperCase();
-    const matchedAirline = airlines.find((airline) => {
-      if (airline.reg_prefix) {
-        let found = airline.reg_prefix.find((prefix) =>
-          registration.startsWith(prefix),
-        );
-        if (found) return true;
-      }
-
-      if (airline.reg_suffix) {
-        let found = airline.reg_suffix.find((suffix) => {
-          return registration.endsWith(suffix);
-        });
-        if (found) return true;
-      }
-    });
-
-    if (matchedAirline) {
-      setFormData({
-        ...formData,
-        airline_code: matchedAirline.code,
-      });
-    }
   }, [formData.registration, airlines]);
 
   return (

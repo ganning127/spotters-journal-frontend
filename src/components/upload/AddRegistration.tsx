@@ -27,10 +27,16 @@ export const AddRegistration = ({
     if (formData.registration === "") {
       setSuggestions(null);
       setIsNewAircraft(false);
+      setFormData({
+        ...formData,
+        aircraft_type_id: "",
+        airline_code: "",
+      });
     }
   }, [formData.registration]);
 
   const searchRegistrations = async () => {
+    if (formData.registration === "") return;
     setLoading(true);
     try {
       const res = await api.get(`/aircraft/search?q=${formData.registration}`);
