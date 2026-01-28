@@ -1,6 +1,6 @@
 import api from "@/api/axios";
 import type { UploadPhotoRequest } from "@/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import { Field, FieldSet } from "../ui/field";
@@ -23,6 +23,13 @@ export const AddRegistration = ({
   const [suggestions, setSuggestions] = useState<Suggestion | null>(null);
   const [isNewAircraft, setIsNewAircraft] = useState(false);
 
+  useEffect(() => {
+    if (formData.registration === "") {
+      setSuggestions(null);
+      setIsNewAircraft(false);
+    }
+  }, [formData.registration]);
+
   const searchRegistrations = async () => {
     setLoading(true);
     try {
@@ -37,11 +44,6 @@ export const AddRegistration = ({
     }
   };
 
-  // Trigger search only when the user leaves the field
-  const handleBlur = () => {
-    searchRegistrations();
-  };
-
   let mostRecentPhoto = suggestions?.Photo[0];
 
   return (
@@ -53,14 +55,13 @@ export const AddRegistration = ({
           placeholder="N374FR"
           required
           value={formData.registration}
-          onBlur={handleBlur}
+          onBlur={searchRegistrations}
           onChange={(e) => {
             // Only update state, do not trigger search
             setFormData({
               ...formData,
               registration: e.target.value.toUpperCase(),
             });
-            // Optional: reset new aircraft status while typing to avoid confusion
             if (isNewAircraft) setIsNewAircraft(false);
           }}
         />
