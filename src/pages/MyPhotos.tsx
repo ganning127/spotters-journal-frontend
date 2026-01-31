@@ -4,6 +4,7 @@ import type { AirplaneCountsResponse, Photo } from "../types";
 import { Button } from "../components/ui/button"; // Assuming you have this
 import { Spinner } from "../components/ui/spinner"; // Assuming you have this
 import { PhotoCard } from "@/components/PhotoCard";
+import { PlayPhotosOverlay } from "@/components/my-photos/PlayPhotosOverlay";
 
 interface PaginationMeta {
   page: number;
@@ -32,6 +33,7 @@ export default function MyPhotos() {
   const [selectedAircraftType, setSelectedAircraftType] = useState<string[]>(
     [],
   );
+  const [isPlaying, setIsPlaying] = useState(false);
 
   // Debounce logic: Only update search query after user stops typing for 500ms
   useEffect(() => {
@@ -79,16 +81,34 @@ export default function MyPhotos() {
 
   return (
     <div>
+      {isPlaying && (
+        <PlayPhotosOverlay
+          isOpen={isPlaying}
+          onClose={() => setIsPlaying(false)}
+          search={debouncedSearch}
+          selectedAircraftType={selectedAircraftType}
+        />
+      )}
       <div className="mb-4">
-        <div>
-          <h1 className="text-3xl font-bold">My Collection</h1>
-          <p className="text-gray-600 text-sm mt-1">
-            You have {meta.total} photos{" "}
-            {selectedAircraftType.length > 0 || debouncedSearch.length > 0
-              ? "matching your criteria"
-              : "total"}
-            .
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">My Collection</h1>
+            <p className="text-gray-600 text-sm mt-1">
+              You have {meta.total} photos{" "}
+              {selectedAircraftType.length > 0 || debouncedSearch.length > 0
+                ? "matching your criteria"
+                : "total"}
+              .
+            </p>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="hover:cursor-pointer"
+          >
+            {isPlaying ? "Pause Photos" : "Play Photos"}
+          </Button>
         </div>
 
         <div className="relative w-full mt-2">

@@ -1,0 +1,39 @@
+import type { Airport, Photo } from "@/types";
+
+export const getAircraftName = (photo: Photo, short: boolean) => {
+  const manufacturer = photo.SpecificAircraft.AircraftType.manufacturer;
+  const type = photo.SpecificAircraft.AircraftType.type;
+  const variant = photo.SpecificAircraft.AircraftType.variant;
+
+  if (short) {
+    return photo.SpecificAircraft.AircraftType.id;
+  }
+
+  let result = "";
+  if (manufacturer) {
+    if (manufacturer == "Airbus") {
+      result += "A";
+    } else if (manufacturer == "Embraer") {
+      result += "E";
+    } else if (manufacturer == "Boeing") {
+    } else {
+      result += manufacturer + " ";
+    }
+  }
+  if (type) {
+    result += type;
+  }
+  if (variant) {
+    if (variant == "neo") {
+      result += "N";
+    } else {
+      result += `-${variant}`;
+    }
+  }
+
+  return result;
+};
+
+export const getAirportName = (airport: Airport) => {
+  return `${airport.name} (${airport.icao_code})`;
+};
