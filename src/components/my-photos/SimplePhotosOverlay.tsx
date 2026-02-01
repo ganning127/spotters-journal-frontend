@@ -4,7 +4,7 @@ import type { Photo } from "@/types";
 import api from "@/api/axios";
 import { getAircraftName, getAirportName } from "@/util/naming";
 
-interface PlayPhotosOverlayProps {
+interface SimplePhotosOverlayProps {
   isOpen: boolean;
   onClose: () => void;
   search?: string;
@@ -12,14 +12,14 @@ interface PlayPhotosOverlayProps {
   intervalMs?: number;
 }
 
-export function PlayPhotosOverlay({
+export function SimplePhotosOverlay({
   isOpen,
   onClose,
   search = "",
   selectedAircraftType = [],
-  intervalMs = 1_000,
-}: PlayPhotosOverlayProps) {
-  // State
+  intervalMs = 30_000,
+}: SimplePhotosOverlayProps) {
+  // hangs on the last photo forever if no new photos are fetched
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [newPhotos, setNewPhotos] = useState<Photo[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -44,7 +44,6 @@ export function PlayPhotosOverlay({
           setLoadingMore(true);
         }
         isFetchingRef.current = true;
-        console.log("Fetching slideshow photos with search:", search);
         const res = await api.get<{ data: Photo[] }>(
           "/photos/my-photos/random",
           {
@@ -86,16 +85,11 @@ export function PlayPhotosOverlay({
       // hold here while fetching new photos
       if (isFetchingRef.current) return;
 
-      setCurrentIndex((prev) => prev + 1);
-      console.log(
-        "currentIndex:",
-        currentIndexRef.current,
-        "photos.length:",
-        photos.length,
-      );
-      if (currentIndexRef.current + 2 >= photos.length) {
+      if (currentIndexRef.current + 1 >= photos.length) {
         // fetch new photos if available
         fetchPhotos(false);
+      } else {
+        setCurrentIndex((prev) => prev + 1);
       }
     }, intervalMs);
 
@@ -103,13 +97,17 @@ export function PlayPhotosOverlay({
   }, [isOpen, fetchPhotos, intervalMs, photos.length]);
 
   useEffect(() => {
+    console.log("newPhotos changed:", newPhotos.length);
     if (newPhotos.length === 0) return;
-    if (currentIndex >= photos.length) {
-      setPhotos(newPhotos);
-      setNewPhotos([]);
-      setCurrentIndex(0);
-    }
-  }, [currentIndex, photos.length]);
+    setPhotos(newPhotos);
+    setNewPhotos([]);
+  }, [currentIndex, newPhotos]);
+
+  useEffect(() => {
+    console.log("photos changed:", photos.length);
+    if (photos.length === 0) return;
+    setCurrentIndex(0);
+  }, [photos]);
 
   // 2. Fullscreen & Keyboard Handlers
   useEffect(() => {

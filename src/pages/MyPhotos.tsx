@@ -4,7 +4,7 @@ import type { AirplaneCountsResponse, Photo } from "../types";
 import { Button } from "../components/ui/button"; // Assuming you have this
 import { Spinner } from "../components/ui/spinner"; // Assuming you have this
 import { PhotoCard } from "@/components/PhotoCard";
-import { PlayPhotosOverlay } from "@/components/my-photos/PlayPhotosOverlay";
+import { SimplePhotosOverlay } from "@/components/my-photos/SimplePhotosOverlay";
 
 interface PaginationMeta {
   page: number;
@@ -61,7 +61,6 @@ export default function MyPhotos() {
 
   useEffect(() => {
     setLoading(true);
-    // Pass params to backend
     api
       .get<{ data: Photo[]; meta: PaginationMeta }>(`/photos/my-photos`, {
         params: {
@@ -82,7 +81,7 @@ export default function MyPhotos() {
   return (
     <div>
       {isPlaying && (
-        <PlayPhotosOverlay
+        <SimplePhotosOverlay
           isOpen={isPlaying}
           onClose={() => setIsPlaying(false)}
           search={debouncedSearch}
