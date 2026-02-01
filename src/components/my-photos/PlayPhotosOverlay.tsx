@@ -132,6 +132,7 @@ export function PlayPhotosOverlay({
   if (!isOpen) return null;
 
   const photo = photos[currentIndex];
+  console.log(loadingMore);
 
   return (
     <div
