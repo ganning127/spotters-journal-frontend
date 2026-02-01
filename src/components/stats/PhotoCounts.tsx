@@ -13,6 +13,7 @@ import {
 
 import type { PhotoCountItem } from "@/types";
 import { Line } from "react-chartjs-2";
+import { Spinner } from "../ui/spinner";
 
 ChartJS.register(
   CategoryScale,
@@ -24,20 +25,31 @@ ChartJS.register(
   Legend,
 );
 
+const NUM_YEARS = 10;
 export const PhotoCounts = () => {
   const [photoCounts, setPhotoCounts] = useState<PhotoCountItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await api.get("/photos/photo-counts");
+        setLoading(true);
+        const res = await api.get("/photos/photo-counts", {
+          params: { num_years: NUM_YEARS },
+        });
         setPhotoCounts(res.data);
       } catch (err) {
         console.error("Failed to fetch photo counts", err);
       } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, []);
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   if (photoCounts.length === 0) {
     return <div>No photo counts available</div>;
@@ -61,7 +73,7 @@ export const PhotoCounts = () => {
       },
       title: {
         display: true,
-        text: "Photo Counts Per Year (last 5 years)",
+        text: `Photo Counts Per Year (last ${NUM_YEARS} years)`,
       },
     },
   };

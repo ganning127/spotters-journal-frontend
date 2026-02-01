@@ -73,6 +73,26 @@ export interface BasicAirportInfo {
   name: string;
 }
 
+export interface ManufacturerCountsResponse {
+  manufacturer: string;
+  photo_count: number;
+}
+
+export interface AirportCountsResponse {
+  icao_code: string;
+  name: string;
+  photo_count: number;
+}
+
+export interface MostSeenAircraftResponse {
+  registration: string;
+  aircraft_type: string;
+  aircraft_variant: string;
+  manufacturer: string;
+  photo_count: number;
+  image_url: string;
+}
+
 export interface AirlineCountsResponse {
   airline_code: string;
   airline_name: string;
