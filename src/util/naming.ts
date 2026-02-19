@@ -1,12 +1,13 @@
 import type { Airport, Photo } from "@/types";
 
 export const getAircraftName = (photo: Photo, short: boolean) => {
-  const manufacturer = photo.SpecificAircraft.AircraftType.manufacturer;
-  const type = photo.SpecificAircraft.AircraftType.type;
-  const variant = photo.SpecificAircraft.AircraftType.variant;
+  const manufacturer =
+    photo.RegistrationHistory.SpecificAircraft.AircraftType.manufacturer;
+  const type = photo.RegistrationHistory.SpecificAircraft.AircraftType.type;
+  const variant = photo.RegistrationHistory.SpecificAircraft.AircraftType.variant;
 
   if (short) {
-    return photo.SpecificAircraft.AircraftType.id;
+    return photo.RegistrationHistory.SpecificAircraft.AircraftType.icao_type;
   }
 
   let result = "";

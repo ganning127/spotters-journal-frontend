@@ -7,16 +7,22 @@ export interface User {
 }
 
 export interface AircraftType {
-  id: string; // ICAO Code
+  icao_type: string; // ICAO Code
   manufacturer: string;
   type: string;
   variant: string;
 }
 
 export interface SpecificAircraft {
-  registration: string;
+  manufactured_date: string | null;
   AircraftType: AircraftType;
-  manufactured_date: string;
+}
+
+export interface RegistrationHistory {
+  registration: string;
+  airline: string | null;
+  is_current: boolean;
+  SpecificAircraft: SpecificAircraft;
 }
 
 export interface Airport {
@@ -27,8 +33,8 @@ export interface Airport {
 export interface Photo {
   id: number;
   image_url: string;
-  registration: string; // Foreign key
-  SpecificAircraft: SpecificAircraft; // Joined data
+  uuid_rh: string;
+  RegistrationHistory: RegistrationHistory; // Joined data
   Airport: Airport; // Joined data
   taken_at: string;
   camera_model?: string;

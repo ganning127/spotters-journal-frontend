@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -23,34 +25,52 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20">
-      <h1 className="text-2xl font-bold mb-6">Log In</h1>
-
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200">
-          {error}
+    <div className="flex items-center justify-center min-h-[80vh] px-4">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="flex flex-col space-y-2 text-center">
+          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your credentials to access your journal
+          </p>
         </div>
-      )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Username"
-          className="p-3 border border-gray-300 rounded focus:outline-none focus:border-black transition"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="p-3 border border-gray-300 rounded focus:outline-none focus:border-black transition"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className="bg-black text-white py-3 rounded hover:bg-gray-800 transition font-medium">
-          Log In
-        </button>
-      </form>
+        {error && (
+          <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md border border-destructive/20 font-medium">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="bg-background"
+              autoFocus
+            />
+          </div>
+          <div className="space-y-2">
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="bg-background"
+            />
+          </div>
+          <Button type="submit" className="w-full">
+            Log In
+          </Button>
+        </form>
+        
+        <p className="px-8 text-center text-sm text-muted-foreground">
+          <a href="/signup" className="hover:text-primary underline underline-offset-4">
+            Don&apos;t have an account? Sign Up
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

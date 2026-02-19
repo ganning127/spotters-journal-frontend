@@ -1,116 +1,168 @@
 // src/components/Layout.tsx
-import { Link, Outlet } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "../components/ui/dropdown-menu";
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  LogOut,
+  Camera,
+  UploadCloud,
+  BarChart3,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  const navItems = [
+    { label: "My Collection", href: "/photos", icon: Camera },
+    { label: "Upload", href: "/upload", icon: UploadCloud },
+    { label: "Stats", href: "/stats", icon: BarChart3 },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-background flex flex-col font-sans">
+      {/* Navigation Bar */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+          
           {/* LOGO */}
-          <Link to="/" className="text-xl font-bold tracking-tight shrink-0">
-            <div className="flex items-center gap-2">
-              <img src="/cropped_logo.png" alt="Logo" className="h-10 w-auto" />
-              <p className="text-lg md:text-xl">Spotter&apos;s Journal</p>
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="relative">
+               <div className="absolute -inset-1 rounded-full bg-primary/10 blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
+              <img src="/cropped_logo.png" alt="Logo" className="h-9 w-auto relative transform transition-transform group-hover:scale-105" />
             </div>
+            <span className="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+              Spotter&apos;s Journal
+            </span>
           </Link>
 
-          {/* DESKTOP MENU - Hidden on mobile */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700">
-            {user && (
-              <div className="flex gap-6">
-                <Link to="/stats" className="hover:text-black transition">
-                  Stats
-                </Link>
-                <Link to="/photos" className="hover:text-black transition">
-                  Mine
-                </Link>
-                <Link to="/upload" className="hover:text-black transition">
-                  Upload
-                </Link>
-              </div>
-            )}
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
+          {/* DESKTOP MENU */}
+          <div className="hidden md:flex items-center gap-2">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="shadow-none">
-                    {user.username}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={logout} variant="destructive">
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <div className="flex items-center gap-1 mr-4">
+                  {navItems.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <Link key={item.href} to={item.href}>
+                        <Button
+                          variant={isActive ? "secondary" : "ghost"}
+                          size="sm"
+                          className={cn(
+                            "gap-2 text-muted-foreground hover:text-foreground transition-colors",
+                            isActive && "text-foreground font-medium"
+                          )}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                        </Button>
+                      </Link>
+                    )
+                  })}
+                </div>
+
+                <div className="h-6 w-px bg-border mr-4" />
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-2 rounded-full pl-2 pr-4 hover:bg-muted">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs ring-2 ring-background">
+                            {user.username.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-sm font-medium">{user.username}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">{user.username}</p>
+                            <p className="text-xs leading-none text-muted-foreground">User Account</p>
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout} className="text-red-500 focus:bg-red-50 focus:text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
-              <div className="flex gap-4">
-                <Link to="/login" className="hover:text-black transition">
-                  Log In
+               <div className="flex gap-2">
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">Log In</Button>
                 </Link>
-                <Link to="/signup" className="hover:text-black transition">
-                  Sign Up
+                <Link to="/signup">
+                  <Button size="sm" className="font-semibold shadow-sm">Sign Up</Button>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* MOBILE HAMBURGER BUTTON - Visible only on mobile */}
+          {/* MOBILE HAMBURGER BUTTON */}
           <div className="md:hidden flex items-center">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-600 hover:text-black p-2 cursor-pointer"
+              className="text-muted-foreground"
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
           </div>
         </div>
 
         {/* MOBILE DROPDOWN PANEL */}
         {isOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white px-6 py-4 space-y-4 shadow-lg">
+          <div className="md:hidden border-t bg-background px-4 py-4 space-y-4 shadow-lg animate-in slide-in-from-top-2">
             {user ? (
               <>
-                <div className="flex flex-col gap-4 font-medium border-b pb-4">
-                  <Link to="/stats" onClick={() => setIsOpen(false)}>
-                    Stats
-                  </Link>
-                  <Link to="/photos" onClick={() => setIsOpen(false)}>
-                    Mine
-                  </Link>
-                  <Link to="/upload" onClick={() => setIsOpen(false)}>
-                    Upload
-                  </Link>
-                </div>
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-sm font-bold">{user.username}</span>
-                  <Button onClick={logout} variant="destructive" size="sm">
-                    Logout
-                  </Button>
-                </div>
+                 <div className="space-y-1">
+                    {navItems.map((item) => (
+                         <Link key={item.href} to={item.href} onClick={() => setIsOpen(false)}>
+                            <Button variant="ghost" className="w-full justify-start gap-2">
+                                <item.icon className="h-4 w-4" />
+                                {item.label}
+                            </Button>
+                        </Link>
+                    ))}
+                 </div>
+                 <div className="border-t pt-4 mt-2">
+                    <div className="flex items-center gap-3 px-2 mb-3">
+                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                             {user.username.charAt(0).toUpperCase()}
+                         </div>
+                         <div className="flex flex-col">
+                             <span className="text-sm font-medium">{user.username}</span>
+                             <span className="text-xs text-muted-foreground">Logged in</span>
+                         </div>
+                    </div>
+                    <Button onClick={logout} variant="destructive" size="sm" className="w-full ">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </Button>
+                 </div>
               </>
             ) : (
-              <div className="flex flex-col gap-4 font-medium">
+              <div className="flex flex-col gap-3">
                 <Link to="/login" onClick={() => setIsOpen(false)}>
-                  Log In
+                  <Button variant="outline" className="w-full">Log In</Button>
                 </Link>
                 <Link to="/signup" onClick={() => setIsOpen(false)}>
-                  Sign Up
+                  <Button className="w-full">Sign Up</Button>
                 </Link>
               </div>
             )}
@@ -118,9 +170,19 @@ export default function Layout() {
         )}
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-10">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-8 py-8 animate-in fade-in duration-500">
         <Outlet />
       </main>
+      
+      <footer className="border-t py-6 md:py-8 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+             <p>© {new Date().getFullYear()} Spotter&apos;s Journal. All rights reserved.</p>
+             <div className="flex gap-4">
+                 <Link to="#" className="hover:text-foreground transition-colors">Privacy</Link>
+                 <Link to="#" className="hover:text-foreground transition-colors">Terms</Link>
+             </div>
+        </div>
+      </footer>
     </div>
   );
 }

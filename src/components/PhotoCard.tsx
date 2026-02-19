@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Photo } from "@/types";
 import { getAircraftName, getAirportName } from "@/util/naming";
+import { X, MapPin, Calendar } from "lucide-react";
 
 export const PhotoCard = ({ photo }: { photo: Photo }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,45 +9,51 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
   return (
     <>
       {/* 1. The Trigger Card */}
-      <div className="group relative border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md bg-white">
+      <div 
+        className="group relative rounded-xl overflow-hidden bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 cursor-pointer"
+        onClick={() => setIsOpen(true)}
+      >
         {/* Image Container */}
-        <div className="aspect-w-4 aspect-h-3 relative">
+        <div className="aspect-[4/3] relative overflow-hidden bg-muted">
           <img
-            onClick={() => setIsOpen(true)}
             src={photo.image_url}
-            alt={photo.registration}
-            className="object-cover w-full h-64 cursor-pointer"
+            alt={photo.RegistrationHistory.registration}
+            className="object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105"
+            loading="lazy"
           />
 
           {/* Top Right Registration Badge */}
-          <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-            {photo.registration}
+          <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white/90 text-[10px] font-mono tracking-wider px-2 py-1 rounded shadow-sm border border-white/10">
+            {photo.RegistrationHistory.registration}
           </div>
 
           {/* Bottom Gradient Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
-            <div className="flex flex-row justify-between items-center text-white">
-              <h3 className="text-sm md:hidden">
-                {getAircraftName(photo, true)}
-              </h3>
-              <h3 className="text-sm md:block hidden">
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+            <div className="flex flex-col text-white">
+              <h3 className="font-semibold text-sm tracking-tight text-white/90">
                 {getAircraftName(photo, false)}
               </h3>
-
-              <p className="text-xs opacity-90">
-                <span className="hidden md:contents">
-                  {photo.Airport.icao_code} •{" "}
-                </span>
-                <span>{new Date(photo.taken_at).toLocaleDateString()}</span>
-              </p>
+              
+              <div className="flex items-center gap-3 mt-1 text-[11px] text-white/70 font-medium">
+                <div className="flex items-center gap-1">
+                  <MapPin size={10} />
+                  <span>{photo.Airport.icao_code}</span>
+                </div>
+                 <div className="flex items-center gap-1">
+                  <Calendar size={10} />
+                  <span>{new Date(photo.taken_at).toLocaleDateString()}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. The Fullscreen Overlay (Always in DOM) */}
+      {/* 2. The Fullscreen Overlay */}
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 transition-all duration-200 ${
+        className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 md:p-8 transition-all duration-300 ease-in-out ${
           isOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -55,33 +62,38 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
       >
         {/* Close Button */}
         <button
-          className="hover:cursor-pointer absolute top-6 right-6 text-white text-4xl hover:text-gray-300 z-[60]"
-          onClick={() => setIsOpen(false)}
+          className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-[110]"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(false);
+          }}
         >
-          &times;
+          <X size={24} />
         </button>
 
         <div
-          className={`relative max-w-7xl max-h-full transition-transform duration-300 ${
-            isOpen ? "scale-100" : "scale-95"
+          className={`relative max-w-7xl w-full h-full flex flex-col items-center justify-center transition-all duration-500 ${
+            isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
           }`}
+          onClick={(e) => e.stopPropagation()}
         >
           <img
             src={photo.image_url}
-            alt={photo.registration}
-            className="max-w-full max-h-[90vh] object-contain rounded-sm shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-            loading="lazy"
+            alt={photo.RegistrationHistory.registration}
+            className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/10"
           />
 
-          <div className="mt-4 text-white text-center">
-            <p className="font-semibold text-lg">
+          <div className="mt-8 text-center space-y-1 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+            <h2 className="text-2xl font-bold text-white tracking-tight">
               {getAircraftName(photo, false)}
+            </h2>
+            <p className="text-lg text-white/60 font-mono tracking-wide">
+                {photo.RegistrationHistory.registration}
             </p>
-            <p className="text-sm text-gray-400">{photo.registration}</p>
-            <p className="text-sm text-gray-400">
-              {getAirportName(photo.Airport)}
-            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-white/40 mt-2">
+               <MapPin size={14} />
+              <span>{getAirportName(photo.Airport)}</span>
+            </div>
           </div>
         </div>
       </div>

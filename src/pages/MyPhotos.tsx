@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import type { AirplaneCountsResponse, Photo } from "../types";
-import { Button } from "../components/ui/button"; // Assuming you have this
-import { Spinner } from "../components/ui/spinner"; // Assuming you have this
+import { Button } from "../components/ui/button";
+import { Spinner } from "../components/ui/spinner";
 import { PhotoCard } from "@/components/PhotoCard";
 import { SimplePhotosOverlay } from "@/components/my-photos/SimplePhotosOverlay";
+import { Search, Plane, XCircle, PlayCircle, PauseCircle, Filter } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PaginationMeta {
   page: number;
@@ -35,11 +37,11 @@ export default function MyPhotos() {
   );
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Debounce logic: Only update search query after user stops typing for 500ms
+  // Debounce logic
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
-      setPage(1); // Reset to page 1 on new search
+      setPage(1);
     }, 500);
     return () => clearTimeout(handler);
   }, [search]);
@@ -48,7 +50,7 @@ export default function MyPhotos() {
     const fetchAircraftTypes = async () => {
       try {
         const res = await api.get<AirplaneCountsResponse[]>(
-          `/photos/airplane-counts?limit=0`,
+          `/photos/airplane-counts?limit=1000`,
         );
         setAircraftTypesFilter(res.data);
       } catch (error) {
@@ -76,10 +78,10 @@ export default function MyPhotos() {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, [page, debouncedSearch, selectedAircraftType]); // Re-run when Page, Search, or Filter changes
+  }, [page, debouncedSearch, selectedAircraftType]);
 
   return (
-    <div>
+    <div className="space-y-8">
       {isPlaying && (
         <SimplePhotosOverlay
           isOpen={isPlaying}
@@ -88,105 +90,135 @@ export default function MyPhotos() {
           selectedAircraftType={selectedAircraftType}
         />
       )}
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">My Collection</h1>
-            <p className="text-gray-600 text-sm mt-1">
-              You have {meta.total} photos{" "}
-              {selectedAircraftType.length > 0 || debouncedSearch.length > 0
-                ? "matching your criteria"
-                : "total"}
-              .
-            </p>
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="hover:cursor-pointer"
-          >
-            {isPlaying ? "Pause Photos" : "Play Photos"}
-          </Button>
+      
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">My Collection</h1>
+          <p className="text-muted-foreground mt-1">
+            {meta.total} {meta.total === 1 ? 'photo' : 'photos'} in your personal fleet.
+          </p>
         </div>
 
-        <div className="relative w-full mt-2">
+        <Button
+          variant={isPlaying ? "destructive" : "default"}
+          onClick={() => setIsPlaying(!isPlaying)}
+          className="gap-2 shadow-sm transition-all hover:scale-105"
+        >
+          {isPlaying ? <PauseCircle size={18} /> : <PlayCircle size={18} />}
+          {isPlaying ? "Pause Slideshow" : "Start Slideshow"}
+        </Button>
+      </div>
+
+      {/* Filters & Search */}
+      <div className="bg-card border rounded-xl p-4 shadow-sm space-y-4 animate-in fade-in duration-700 delay-100">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search registration..."
+            placeholder="Search by registration (e.g., N12345)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full p-2 pl-3 border border-gray-300 rounded-lg focus:border-black focus:outline-none"
+            className="w-full pl-9 pr-4 py-2 bg-background border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
           />
         </div>
 
-        <div className="flex flex-row gap-1 flex-wrap mt-2">
-          {aircraftTypesFilter.map((aircraft) => {
-            const isSelected = selectedAircraftType.includes(
-              aircraft.airplane_code,
-            );
-            return (
-              <Button
-                key={aircraft.airplane_code}
-                variant={isSelected ? "default" : "outline"}
-                size="sm"
-                className="cursor-pointer"
-                onClick={() =>
-                  setSelectedAircraftType((prev) => {
-                    if (prev.includes(aircraft.airplane_code)) {
-                      return prev.filter(
-                        (code) => code !== aircraft.airplane_code,
-                      );
+        {aircraftTypesFilter.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <Filter size={12} />
+              <span>Filter by Aircraft Type</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {aircraftTypesFilter.map((aircraft) => {
+                const isSelected = selectedAircraftType.includes(
+                  aircraft.airplane_code,
+                );
+                return (
+                  <button
+                    key={aircraft.airplane_code}
+                    onClick={() =>
+                      setSelectedAircraftType((prev) => {
+                        if (prev.includes(aircraft.airplane_code)) {
+                          return prev.filter(
+                            (code) => code !== aircraft.airplane_code,
+                          );
+                        }
+                        return [...prev, aircraft.airplane_code];
+                      })
                     }
-                    return [...prev, aircraft.airplane_code];
-                  })
-                }
-              >
-                {aircraft.airplane_code} ({aircraft.photo_count})
-              </Button>
-            );
-          })}
-        </div>
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border",
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:bg-muted"
+                    )}
+                  >
+                    {aircraft.airplane_code}
+                    <span className={cn("ml-0.5 opacity-60", isSelected ? "text-primary-foreground" : "")}>
+                      {aircraft.photo_count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Content Area */}
       {loading ? (
-        <div className="flex justify-center py-20">
-          <Spinner />
+        <div className="flex flex-col items-center justify-center py-24 animate-pulse">
+          <Spinner className="h-8 w-8 text-primary" />
+          <p className="mt-4 text-sm text-muted-foreground">Loading specific aircraft data...</p>
         </div>
       ) : photos.length === 0 ? (
-        <div className="text-center py-20 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <p className="text-gray-500 mb-2">No photos found.</p>
+        <div className="text-center py-24 bg-muted/30 rounded-xl border border-dashed animate-in fade-in zoom-in-95 duration-500">
+          <div className="bg-muted h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+             <Plane className="h-8 w-8 text-muted-foreground/50" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">No photos found</h3>
+          <p className="text-muted-foreground mt-1 max-w-sm mx-auto">
+            We couldn't find any photos matching your current filters or search query.
+          </p>
           {(debouncedSearch || selectedAircraftType.length > 0) && (
-            <button
+            <Button
+              variant="link"
               onClick={() => {
                 setSearch("");
                 setSelectedAircraftType([]);
               }}
-              className="text-blue-600 hover:underline text-sm"
+              className="mt-4 text-primary gap-2"
             >
-              Clear search
-            </button>
+              <XCircle size={16} />
+              Clear all filters
+            </Button>
           )}
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {photos.map((photo) => (
-              <PhotoCard key={photo.id} photo={photo} />
+              <div 
+               key={photo.id}
+              >
+                <PhotoCard photo={photo} />
+              </div>
             ))}
           </div>
 
           {meta.totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-12">
+            <div className="flex justify-center items-center gap-4 pt-8 border-t">
               <Button
                 variant="outline"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
+                className="w-24"
               >
                 Previous
               </Button>
 
-              <span className="text-sm text-gray-600 font-medium">
+              <span className="text-sm text-muted-foreground font-medium tabular-nums">
                 Page {meta.page} of {meta.totalPages}
               </span>
 
@@ -194,12 +226,13 @@ export default function MyPhotos() {
                 variant="outline"
                 onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                 disabled={page >= meta.totalPages}
+                className="w-24"
               >
                 Next
               </Button>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

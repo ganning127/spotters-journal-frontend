@@ -56,14 +56,14 @@ export default function UploadPhoto() {
     <div className="max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Upload Photo</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Section className="bg-green-50">
+        <Section className="bg-muted/30 border border-border p-4 rounded-lg">
           <FieldSet>
             <Field>Image URL</Field>
             <Input
               type="url"
               placeholder="https://..."
               required
-              className="w-full p-2 border rounded-lg"
+              className="w-full"
               value={formData.image_url}
               onChange={(e) => {
                 setFormData({ ...formData, image_url: e.target.value });
@@ -80,20 +80,20 @@ export default function UploadPhoto() {
               <img
                 src={formData.image_url}
                 alt="Preview"
-                className="mt-4 w-full object-contain border border-gray-200 rounded"
+                className="mt-4 w-full object-contain border border-border rounded-md bg-background"
               />
 
               <Section
                 className={cn(
-                  "mt-2 grid grid-cols-2 md:grid-cols-3 gap-4",
+                  "mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-lg transition-colors",
                   formData.taken_at &&
                     formData.shutter_speed &&
                     formData.aperture &&
                     formData.iso &&
                     formData.focal_length &&
                     formData.camera_model
-                    ? "bg-green-50"
-                    : "bg-yellow-50",
+                    ? "bg-primary/5 border border-primary/20"
+                    : "bg-yellow-500/10 border border-yellow-500/20",
                 )}
               >
                 <AddImageExif formData={formData} setFormData={setFormData} />
@@ -102,11 +102,11 @@ export default function UploadPhoto() {
           )}
         </Section>
 
-        <Section className="bg-purple-50">
+        <Section className="bg-muted/30 border border-border p-4 rounded-lg">
           <AddRegistration formData={formData} setFormData={setFormData} />
         </Section>
 
-        <Section className="bg-blue-50">
+        <Section className="bg-muted/30 border border-border p-4 rounded-lg">
           <FieldSet>
             <Field>Airport</Field>
             <AirportSelector formData={formData} setFormData={setFormData} />

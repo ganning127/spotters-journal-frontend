@@ -109,8 +109,8 @@ export const NewAircraftSelector = ({
             </SelectTrigger>
             <SelectContent>
               {aircraftTypes.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.manufacturer} {t.type} ({t.variant || t.id})
+                <SelectItem key={t.icao_type} value={t.icao_type}>
+                  {t.manufacturer} {t.type} ({t.variant || t.icao_type})
                 </SelectItem>
               ))}
             </SelectContent>
