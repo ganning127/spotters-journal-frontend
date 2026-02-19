@@ -163,7 +163,7 @@ export function PlayPhotosOverlay({
             // Using ID as key ensures React handles the DOM transition correctly
             key={photo.id}
             src={photo.image_url}
-            alt={photo.registration}
+            alt={photo.RegistrationHistory.registration}
             className="max-h-full max-w-full object-contain shadow-2xl"
           />
           <div className="absolute w-4xl bottom-10 bg-black/50 text-white px-4 py-4 rounded-lg backdrop-blur-sm">
@@ -173,7 +173,7 @@ export function PlayPhotosOverlay({
                   {getAircraftName(photo, false)}
                 </p>
                 <p className="mt-1 text-gray-300 text-lg">
-                  {photo.registration}{" "}
+                  {photo.RegistrationHistory.registration}{" "}
                 </p>
               </div>
 
