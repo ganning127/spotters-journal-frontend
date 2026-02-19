@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+
 import api from "../api/axios";
 import type { UploadPhotoRequest } from "../types";
 import { Button } from "../components/ui/button";
@@ -10,7 +10,8 @@ import { AddImageExif } from "@/components/upload/AddImageExif";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AddRegistration } from "@/components/upload/AddRegistration";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Plane, MapPin, Camera, CheckCircle } from "lucide-react";
+import { UploadSteps } from "@/components/upload/UploadSteps";
 
 const defaultData = {
   registration: "",
@@ -33,18 +34,29 @@ const defaultData = {
   airport_longitude: 0,
 } as UploadPhotoRequest;
 
+const STEPS = [
+  { id: 1, label: "Photo" },
+  { id: 2, label: "Aircraft" },
+  { id: 3, label: "Location" },
+  { id: 4, label: "Details" },
+  { id: 5, label: "Review" },
+];
+
 export default function UploadPhoto() {
   const [formData, setFormData] = useState(defaultData);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [step, setStep] = useState(1);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      // Auto-advance to next step if it's the first time
+      if (step === 1) setStep(2);
     }
   };
 
@@ -65,12 +77,31 @@ export default function UploadPhoto() {
       const file = e.dataTransfer.files[0];
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      if (step === 1) setStep(2);
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const nextStep = () => {
+    if (step === 1 && !selectedFile) {
+      toast.error("Please select an image first.");
+      return;
+    }
+    if (step === 2 && !formData.registration) {
+      toast.error("Please enter a registration.");
+      return;
+    }
+    if (step === 3 && !formData.airport_code) {
+      toast.error("Please select an airport.");
+      return;
+    }
+    setStep((s) => Math.min(s + 1, 5));
+  };
 
+  const prevStep = () => {
+    setStep((s) => Math.max(s - 1, 1));
+  };
+
+  const handleSubmit = async () => {
     if (!selectedFile) {
       toast.error("Please select an image file.");
       return;
@@ -98,7 +129,6 @@ export default function UploadPhoto() {
          data.append("manufactured_date", formData.manufactured_date);
       }
 
-      // Airport 'other' fields
       data.append("airport_icao_code", formData.airport_icao_code || "");
       data.append("airport_name", formData.airport_name || "");
       data.append("airport_latitude", formData.airport_latitude ? formData.airport_latitude.toString() : "");
@@ -112,6 +142,7 @@ export default function UploadPhoto() {
       setFormData(defaultData);
       setSelectedFile(null);
       setPreviewUrl(null);
+      setStep(1);
     } catch (err) {
       console.error(err);
       toast.error("Upload failed. Please try again.");
@@ -121,110 +152,227 @@ export default function UploadPhoto() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Upload Photo</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Section className="bg-muted/30 border border-border p-4 rounded-lg">
-          <FieldSet>
-            <Field>Photo File</Field>
+    <div className="max-w-2xl mx-auto flex flex-col">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Upload Photo</h1>
+        <p className="text-muted-foreground">Share your best shots with the community.</p>
+      </div>
+
+      <UploadSteps currentStep={step} steps={STEPS} />
+
+      <div className="bg-card border rounded-xl p-6 shadow-sm relative overflow-hidden">
+        {/* Step 1: Photo */}
+        {step === 1 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <ImagePlus size={24} />
+              </div>
+              <h2 className="text-xl font-semibold">Select Photo</h2>
+            </div>
             
-            {!selectedFile ? (
-               <div 
-                 className={cn(
-                   "border-2 border-dashed rounded-lg p-10 flex flex-col items-center justify-center transition-all cursor-pointer relative",
-                   isDragging 
-                     ? "border-primary bg-primary/10 scale-[1.02]" 
-                     : "border-border text-muted-foreground hover:bg-muted/50"
-                 )}
-                 onDragOver={handleDragOver}
-                 onDragLeave={handleDragLeave}
-                 onDrop={handleDrop}
-               >
-                 <input 
-                   type="file" 
-                   accept="image/*"
-                   onChange={handleFileChange}
-                   className="absolute inset-0 opacity-0 cursor-pointer"
-                 />
-                 <ImagePlus 
-                   size={48} 
-                   className={cn(
-                     "mb-4 transition-opacity",
-                     isDragging ? "opacity-100 text-primary" : "opacity-50"
-                   )} 
-                 />
-                 <p className={cn("text-sm font-medium transition-colors", isDragging && "text-primary")}>
-                   {isDragging ? "Drop to Upload" : "Click or Drag to Upload Image"}
-                 </p>
-                 <p className="text-xs text-muted-foreground mt-1">JPEG, PNG up to 10MB</p>
-               </div>
-            ) : (
-                <div className="relative">
-                    <img
-                        src={previewUrl!}
-                        alt="Preview"
-                        className="w-full max-h-[400px] object-contain border border-border rounded-lg bg-black/5"
+            <Section className="border-none p-0">
+               {!selectedFile ? (
+                <div 
+                  className={cn(
+                    "border-2 border-dashed rounded-xl p-16 flex flex-col items-center justify-center transition-all cursor-pointer relative bg-muted/20",
+                    isDragging 
+                      ? "border-primary bg-primary/5 scale-[1.01]" 
+                      : "border-border/50 hover:border-primary/50 hover:bg-muted/40"
+                  )}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  />
+                  <div className="p-4 bg-background rounded-full shadow-sm mb-4">
+                    <ImagePlus 
+                      size={32} 
+                      className={cn(
+                        "transition-colors",
+                        isDragging ? "text-primary" : "text-muted-foreground"
+                      )} 
                     />
-                    <Button 
-                        variant="secondary"
-                        size="sm"
-                        className="absolute top-2 right-2"
-                        onClick={() => {
-                            setSelectedFile(null);
-                            setPreviewUrl(null);
-                        }}
-                    >
-                        Change Photo
-                    </Button>
+                  </div>
+                  <p className={cn("text-lg font-medium transition-colors mb-2", isDragging && "text-primary")}>
+                    {isDragging ? "Drop to Upload" : "Click or Drag to Upload"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">JPEG, PNG up to 10MB</p>
                 </div>
-            )}
+              ) : (
+                 <div className="relative group">
+                     <img
+                         src={previewUrl!}
+                         alt="Preview"
+                         className="w-full max-h-[400px] object-contain rounded-lg bg-black/5 shadow-inner"
+                     />
+                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                        <Button 
+                            variant="secondary"
+                            onClick={() => {
+                                setSelectedFile(null);
+                                setPreviewUrl(null);
+                            }}
+                        >
+                            Change Photo
+                        </Button>
+                     </div>
+                 </div>
+              )}
+            </Section>
+          </div>
+        )}
+
+        {/* Step 2: Aircraft */}
+        {step === 2 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+             <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <Plane size={24} />
+              </div>
+              <h2 className="text-xl font-semibold">Aircraft Details</h2>
+            </div>
             
-            <FieldDescription>
-              Select the photo you want to upload. We'll optimize it automatically.
-            </FieldDescription>
-          </FieldSet>
+            <Section className="border-none p-0">
+              <AddRegistration formData={formData} setFormData={setFormData} />
+            </Section>
+          </div>
+        )}
 
-          {/* ROW 4: EXIF Metadata Grid */}
-          {selectedFile && (
-             <Section
-                className={cn(
-                  "mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-lg transition-colors",
-                  formData.taken_at
-                    ? "bg-primary/5 border border-primary/20"
-                    : "bg-yellow-500/10 border border-yellow-500/20",
-                )}
-              >
-                <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
-              </Section>
+        {/* Step 3: Location */}
+        {step === 3 && (
+           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+             <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <MapPin size={24} />
+              </div>
+              <h2 className="text-xl font-semibold">Location</h2>
+            </div>
+
+            <Section className="border-none p-0">
+              <FieldSet>
+                <Field>Airport</Field>
+                <FieldDescription className="mb-2">Where was this photo taken?</FieldDescription>
+                <AirportSelector formData={formData} setFormData={setFormData} />
+              </FieldSet>
+            </Section>
+          </div>
+        )}
+
+        {/* Step 4: Details */}
+        {step === 4 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+             <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <Camera size={24} />
+              </div>
+              <h2 className="text-xl font-semibold">Photo Details</h2>
+            </div>
+
+            <Section className="border-none p-0">
+               {selectedFile && (
+                  <div className={cn(
+                    "grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg transition-colors border",
+                    formData.taken_at
+                      ? "bg-primary/5 border-primary/20"
+                      : "bg-yellow-500/10 border-yellow-500/20",
+                  )}>
+                    <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
+                  </div>
+               )}
+            </Section>
+          </div>
+        )}
+
+        {/* Step 5: Review */}
+        {step === 5 && (
+           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+             <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <CheckCircle size={24} />
+              </div>
+              <h2 className="text-xl font-semibold">Review & Submit</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <img 
+                  src={previewUrl!} 
+                  alt="Preview" 
+                  className="w-full rounded-lg shadow-sm border"
+                />
+              </div>
+              <div className="space-y-4">
+                <div className="bg-muted/30 p-4 rounded-lg border space-y-3">
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registration</span>
+                    <p className="font-semibold text-lg">{formData.registration}</p>
+                    {formData.aircraft_type_id && (
+                       <p className="text-sm text-muted-foreground">{formData.aircraft_type_id}</p>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Location</span>
+                    <p className="font-medium">{formData.airport_code}</p>
+                    {formData.airport_name && (
+                      <p className="text-sm text-muted-foreground">{formData.airport_name}</p>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Date Taken</span>
+                    <p className="font-medium">
+                      {formData.taken_at ? new Date(formData.taken_at).toLocaleString() : "Unknown"}
+                    </p>
+                  </div>
+                  {(formData.camera_model || formData.shutter_speed) && (
+                     <div className="pt-2 border-t">
+                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Exif Data</span>
+                       <div className="grid grid-cols-3 gap-2 mt-1 text-sm">
+                          {formData.camera_model && <div>Camera: {formData.camera_model}</div>}
+                          {formData.shutter_speed && <div>Shutter: {formData.shutter_speed}</div>}
+                          {formData.aperture && <div>Aperture: {formData.aperture}</div>}
+                          {formData.iso && <div>ISO: {formData.iso}</div>}
+                          {formData.focal_length && <div className="col-span-2">Focal Length: {formData.focal_length}</div>}
+                       </div>
+                     </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between mt-8 pt-6 border-t">
+          <Button
+            variant="ghost" 
+            onClick={prevStep}
+            disabled={step === 1 || loading}
+            className={cn(step === 1 && "invisible")}
+          >
+            Back
+          </Button>
+          
+          {step < 5 ? (
+            <Button onClick={nextStep}>
+              Next Step
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleSubmit} 
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90 min-w-[120px]"
+            >
+              {loading ? "Uploading..." : "Submit Photo"}
+            </Button>
           )}
-        </Section>
-
-        <Section className="bg-muted/30 border border-border p-4 rounded-lg">
-          <AddRegistration formData={formData} setFormData={setFormData} />
-        </Section>
-
-        <Section className="bg-muted/30 border border-border p-4 rounded-lg">
-          <FieldSet>
-            <Field>Airport</Field>
-            <AirportSelector formData={formData} setFormData={setFormData} />
-          </FieldSet>
-        </Section>
-
-        <Button
-          type="submit"
-          variant={"default"}
-          className="w-full hover:cursor-pointer"
-          size="lg"
-          disabled={
-            formData.registration.length === 0 ||
-            !selectedFile ||
-            formData.airport_code.length === 0 || 
-            loading
-          }
-        >
-          {loading ? "Uploading & Processing..." : "Add Photo"}
-        </Button>
-      </form>
+        </div>
+      </div>
     </div>
   );
 }
