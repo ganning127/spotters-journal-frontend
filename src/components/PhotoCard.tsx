@@ -1,17 +1,35 @@
 import { useState } from "react";
 import type { Photo } from "@/types";
 import { getAircraftName, getAirportName } from "@/util/naming";
-import { X, MapPin, Calendar } from "lucide-react";
+import { X, MapPin, Calendar, Edit, Trash } from "lucide-react";
+import { EditPhotoModal } from "./EditPhotoModal";
+import api from "@/api/axios";
+import { toast } from "sonner";
 
-export const PhotoCard = ({ photo }: { photo: Photo }) => {
+export const PhotoCard = ({ photo, onRefresh }: { photo: Photo; onRefresh?: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   return (
     <>
+      <EditPhotoModal 
+        photo={photo} 
+        isOpen={isEditOpen} 
+        onClose={() => setIsEditOpen(false)} 
+        onUpdate={() => {
+            if (onRefresh) onRefresh();
+        }}
+      />
+
       {/* 1. The Trigger Card */}
       <div 
         className="group relative rounded-xl overflow-hidden bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 cursor-pointer"
         onClick={() => setIsOpen(true)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setContextMenu({ x: e.clientX, y: e.clientY });
+        }}
       >
         {/* Image Container */}
         <div className="aspect-[4/3] relative overflow-hidden bg-muted">
@@ -51,6 +69,54 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
         </div>
       </div>
 
+      {/* Context Menu */}
+      {contextMenu && (
+        <>
+          <div 
+            className="fixed inset-0 z-[200]" 
+            onClick={() => setContextMenu(null)} 
+            onContextMenu={(e) => {
+               e.preventDefault(); 
+               setContextMenu(null);
+            }}
+          />
+          <div
+            className="fixed z-[201] w-48 rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none animate-in fade-in zoom-in-95"
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+          >
+             <div 
+              className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 gap-2"
+              onClick={() => {
+                setContextMenu(null);
+                setIsEditOpen(true);
+              }}
+             >
+                <Edit size={14} />
+                <span>Edit Details</span>
+             </div>
+             <div 
+              className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-destructive hover:text-destructive-foreground text-destructive gap-2"
+              onClick={async () => {
+                setContextMenu(null);
+                if (window.confirm("Are you sure you want to delete this photo? This action cannot be undone.")) {
+                    try {
+                        await api.delete(`/photos/${photo.id}`);
+                        toast.success("Photo deleted successfully");
+                        if (onRefresh) onRefresh();
+                    } catch (error) {
+                        console.error("Failed to delete photo", error);
+                        toast.error("Failed to delete photo");
+                    }
+                }
+              }}
+             >
+                <Trash size={14} />
+                <span>Delete Photo</span>
+             </div>
+          </div>
+        </>
+      )}
+
       {/* 2. The Fullscreen Overlay */}
       <div
         className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 md:p-8 transition-all duration-300 ease-in-out ${
@@ -60,16 +126,29 @@ export const PhotoCard = ({ photo }: { photo: Photo }) => {
         }`}
         onClick={() => setIsOpen(false)}
       >
-        {/* Close Button */}
-        <button
-          className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-[110]"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(false);
-          }}
-        >
-          <X size={24} />
-        </button>
+        {/* Actions Bar */}
+        <div className="absolute top-6 right-6 flex items-center gap-2 z-[110]">
+             <button
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditOpen(true);
+                }}
+                title="Edit Photo Details"
+            >
+                <Edit size={20} />
+            </button>
+            <button
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(false);
+            }}
+            >
+            <X size={24} />
+            </button>
+        </div>
+        
 
         <div
           className={`relative max-w-7xl w-full h-full flex flex-col items-center justify-center transition-all duration-500 ${

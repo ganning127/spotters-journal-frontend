@@ -36,6 +36,7 @@ export default function MyPhotos() {
     [],
   );
   const [isPlaying, setIsPlaying] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(0);
 
   // Debounce logic
   useEffect(() => {
@@ -78,7 +79,7 @@ export default function MyPhotos() {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, [page, debouncedSearch, selectedAircraftType]);
+  }, [page, debouncedSearch, selectedAircraftType, lastRefresh]);
 
   return (
     <div className="space-y-8">
@@ -202,7 +203,12 @@ export default function MyPhotos() {
               <div 
                key={photo.id}
               >
-                <PhotoCard photo={photo} />
+                <PhotoCard 
+                    photo={photo} 
+                    onRefresh={() => {
+                      setLastRefresh(Date.now());
+                    }} 
+                />
               </div>
             ))}
           </div>

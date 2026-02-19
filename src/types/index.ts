@@ -14,6 +14,7 @@ export interface AircraftType {
 }
 
 export interface SpecificAircraft {
+  icao_type: string;
   manufactured_date: string | null;
   AircraftType: AircraftType;
 }
@@ -38,6 +39,11 @@ export interface Photo {
   Airport: Airport; // Joined data
   taken_at: string;
   camera_model?: string;
+  shutter_speed?: string;
+  iso?: number;
+  aperture?: string;
+  focal_length?: string;
+  airport_code: string;
 }
 
 export interface AuthResponse {
@@ -61,12 +67,11 @@ export interface UploadPhotoRequest {
   uuid_rh?: string; // Existing Registration History UUID
 
   aircraft_type_id?: string; // ICAO Code
-  manufactured_date?: string;
-
+  airport_latitude?: number | undefined;
+  airport_longitude?: number | undefined;
+  manufactured_date?: string | undefined;
   airport_icao_code?: string;
   airport_name?: string;
-  airport_latitude?: number;
-  airport_longitude?: number;
 }
 
 export interface Airline {
