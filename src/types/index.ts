@@ -58,6 +58,8 @@ export interface UploadPhotoRequest {
   focal_length?: string;
   airline_code?: string;
 
+  uuid_rh?: string; // Existing Registration History UUID
+
   aircraft_type_id?: string; // ICAO Code
   manufactured_date?: string;
 

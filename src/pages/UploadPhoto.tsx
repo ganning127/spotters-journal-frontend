@@ -25,6 +25,8 @@ const defaultData = {
   focal_length: "",
   airline_code: "",
 
+  uuid_rh: "", // Add default for uuid_rh
+
   aircraft_type_id: "",
   manufactured_date: "",
 
@@ -124,6 +126,9 @@ export default function UploadPhoto() {
       
       if (formData.aircraft_type_id) {
          data.append("aircraft_type_id", formData.aircraft_type_id);
+      }
+      if (formData.uuid_rh) {
+         data.append("uuid_rh", formData.uuid_rh);
       }
       if (formData.manufactured_date) {
          data.append("manufactured_date", formData.manufactured_date);
