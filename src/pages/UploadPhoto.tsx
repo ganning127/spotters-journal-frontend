@@ -6,7 +6,6 @@ import { Button } from "../components/ui/button";
 import { AirportSelector } from "@/components/upload/AirportSelector";
 import { Field, FieldDescription, FieldSet } from "@/components/ui/field";
 import { Section } from "@/components/upload/Section";
-import {} from "@radix-ui/react-select";
 import { AddImageExif } from "@/components/upload/AddImageExif";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
