@@ -92,7 +92,7 @@ export default function MyPhotos() {
       )}
       
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">My Collection</h1>
           <p className="text-muted-foreground mt-1">
@@ -111,7 +111,7 @@ export default function MyPhotos() {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-card border rounded-xl p-4 shadow-sm space-y-4 animate-in fade-in duration-700 delay-100">
+      <div className="bg-card border rounded-xl p-4 space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input

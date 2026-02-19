@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { AddRegistration } from "@/components/upload/AddRegistration";
 import { ImagePlus, Plane, MapPin, Camera, CheckCircle } from "lucide-react";
 import { UploadSteps } from "@/components/upload/UploadSteps";
+import { ImageMagnifier } from "@/components/ui/image-magnifier";
 
 const defaultData = {
   registration: "",
@@ -37,10 +38,10 @@ const defaultData = {
 } as UploadPhotoRequest;
 
 const STEPS = [
-  { id: 1, label: "Photo" },
-  { id: 2, label: "Aircraft" },
+  { id: 1, label: "Upload" },
+  { id: 2, label: "Registration" },
   { id: 3, label: "Location" },
-  { id: 4, label: "Details" },
+  { id: 4, label: "Metadata" },
   { id: 5, label: "Review" },
 ];
 
@@ -214,7 +215,7 @@ export default function UploadPhoto() {
                      <img
                          src={previewUrl!}
                          alt="Preview"
-                         className="w-full max-h-[400px] object-contain rounded-lg bg-black/5 shadow-inner"
+                         className="w-full max-h-[400px] object-contain rounded-lg bg-muted shadow-inner"
                      />
                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
                         <Button 
@@ -243,9 +244,20 @@ export default function UploadPhoto() {
               <h2 className="text-xl font-semibold">Aircraft Details</h2>
             </div>
             
-            <Section className="border-none p-0">
-              <AddRegistration formData={formData} setFormData={setFormData} />
-            </Section>
+            <div className="space-y-6">
+                <Section className="border-none p-0">
+                  <AddRegistration formData={formData} setFormData={setFormData} />
+                </Section>
+                {previewUrl && (
+                  <div className="w-full bg-muted/30 rounded-lg p-2 flex justify-center border border-dashed">
+                     <ImageMagnifier 
+                        src={previewUrl} 
+                        alt="Reference" 
+                        className="rounded-lg shadow-sm max-h-[400px]" 
+                      />
+                  </div>
+                )}
+            </div>
           </div>
         )}
 
@@ -285,7 +297,7 @@ export default function UploadPhoto() {
                     "grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg transition-colors border",
                     formData.taken_at
                       ? "bg-primary/5 border-primary/20"
-                      : "bg-yellow-500/10 border-yellow-500/20",
+                      : "bg-warning/10 border-warning/20",
                   )}>
                     <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
                   </div>

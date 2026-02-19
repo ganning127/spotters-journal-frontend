@@ -168,7 +168,7 @@ export const AddRegistration = ({
 
       {/* Case: Single Confirmed Aircraft (either auto-selected or user-selected) */}
       {confirmedAircraft && !isNewAircraft && (
-         <Alert className="w-full mt-2 bg-purple-100 border-none flex flex-col gap-2 opacity-75">
+         <Alert className="w-full mt-2 bg-secondary border-none flex flex-col gap-2 opacity-75">
           <div className="flex items-start gap-2">
             <AlertCircleIcon className="mt-1" />
             <div className="flex-1">
@@ -178,7 +178,7 @@ export const AddRegistration = ({
               <AlertDescription>
                  <AircraftInfoDisplay aircraft={confirmedAircraft} />
                 
-                <div className="mt-2 flex items-center gap-2 text-green-700 font-medium">
+                <div className="mt-2 flex items-center gap-2 text-success font-medium">
                     <span>✓ Confirmed</span>
                      <button 
                         className="text-xs text-muted-foreground hover:text-primary underline font-normal ml-auto"

@@ -21,7 +21,7 @@ export function SimplePhotosOverlay({
   onClose,
   search = "",
   selectedAircraftType = [],
-  intervalMs = 2_000,
+  intervalMs = 30_000,
 }: SimplePhotosOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showControls, setShowControls] = useState(false);

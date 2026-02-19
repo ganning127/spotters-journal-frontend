@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)]">
       {/* Hero Section */}
-      <section className="flex-1 flex flex-col justify-center items-center text-center px-4 py-20 bg-gradient-to-b from-background to-muted/30">
+      <section className="flex-1 flex flex-col justify-center items-center text-center px-4 py-20 from-background to-muted/30">
         <div className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="inline-flex items-center justify-center p-3 rounded-full bg-primary/10 text-primary mb-4">
             <Plane className="w-8 h-8" />
@@ -41,7 +41,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-muted/30 border-t border-border/50">
+      <section className="py-20 px-4 border-t border-border/50">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
           <FeatureCard
             icon={<Camera className="w-10 h-10 text-blue-500" />}
@@ -60,11 +60,6 @@ export default function Home() {
           />
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-8 text-center text-muted-foreground text-sm border-t border-border/50">
-        <p>© {new Date().getFullYear()} Spotter's Journal. Built for aviators.</p>
-      </footer>
     </div>
   );
 }
