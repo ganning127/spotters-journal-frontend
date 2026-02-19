@@ -7,25 +7,14 @@ import Signup from "./pages/Signup";
 import MyPhotos from "./pages/MyPhotos";
 import UploadPhoto from "./pages/UploadPhoto";
 import { Stats } from "./pages/Stats";
+import Home from "./pages/Home";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
         {/* Public Routes */}
-        <Route
-          index
-          element={
-            <div className="text-center mt-20">
-              <h2 className="text-3xl font-bold mb-4">
-                Welcome to Spotter&apos;s Journal
-              </h2>
-              <p className="text-gray-500">
-                Log your sightings. Track your fleet.
-              </p>
-            </div>
-          }
-        />
+        <Route index element={<Home />} />
         <Route path="login" element={<Login />} />
         <Route path="signup" element={<Signup />} />
 

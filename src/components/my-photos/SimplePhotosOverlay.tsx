@@ -1,8 +1,12 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { X, Loader2 } from "lucide-react";
-import type { Photo } from "@/types";
-import api from "@/api/axios";
+import { useEffect, useRef, useState } from "react";
+import {
+  X,
+  Loader2
+} from "lucide-react";
 import { getAircraftName, getAirportName } from "@/util/naming";
+import { useSlideshow } from "@/hooks/useSlideshow";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface SimplePhotosOverlayProps {
   isOpen: boolean;
@@ -17,174 +21,170 @@ export function SimplePhotosOverlay({
   onClose,
   search = "",
   selectedAircraftType = [],
-  intervalMs = 30_000,
+  intervalMs = 2_000,
 }: SimplePhotosOverlayProps) {
-  // hangs on the last photo forever if no new photos are fetched
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [newPhotos, setNewPhotos] = useState<Photo[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const isFetchingRef = useRef(false);
-
-  // Refs for accessing state inside intervals/listeners
   const containerRef = useRef<HTMLDivElement>(null);
-  const currentIndexRef = useRef(currentIndex);
+  const [showControls, setShowControls] = useState(false);
+  const hideControlsTimer = useRef<NodeJS.Timeout>(null);
 
+  const {
+    currentPhoto,
+    isLoading,
+    isPlaying,
+    togglePlay,
+    handleNext,
+    handlePrev,
+  } = useSlideshow({
+    isOpen,
+    search,
+    selectedAircraftType,
+    initialIntervalMs: intervalMs,
+  });
+
+  // 1. Fullscreen & Keyboard Handlers
   useEffect(() => {
-    currentIndexRef.current = currentIndex;
-  }, [currentIndex]);
-
-  const fetchPhotos = useCallback(
-    async (forInitialLoad: boolean) => {
-      try {
-        if (forInitialLoad) {
-          setLoading(true);
-        } else {
-          setLoadingMore(true);
-        }
-        isFetchingRef.current = true;
-        const res = await api.get<{ data: Photo[] }>(
-          "/photos/my-photos/random",
-          {
-            params: {
-              search: search,
-              aircraftTypeFilter: JSON.stringify(selectedAircraftType),
-            },
-            headers: {
-              "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-              Pragma: "no-cache",
-              Expires: "0",
-            },
-          },
-        );
-
-        if (forInitialLoad) {
-          setPhotos(res.data.data);
-        } else {
-          setNewPhotos(res.data.data);
-        }
-      } catch (err) {
-        console.error("Failed to load slideshow photos", err);
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-        isFetchingRef.current = false;
-      }
-    },
-    [search, selectedAircraftType],
-  );
-
-  useEffect(() => {
-    console.log("mounting...");
-    if (!isOpen) return;
-
-    fetchPhotos(true);
-
-    const interval = setInterval(() => {
-      // hold here while fetching new photos
-      if (isFetchingRef.current) return;
-
-      if (currentIndexRef.current + 1 >= photos.length) {
-        // fetch new photos if available
-        fetchPhotos(false);
-      } else {
-        setCurrentIndex((prev) => prev + 1);
-      }
-    }, intervalMs);
-
-    return () => clearInterval(interval);
-  }, [isOpen, fetchPhotos, intervalMs, photos.length]);
-
-  useEffect(() => {
-    console.log("newPhotos changed:", newPhotos.length);
-    if (newPhotos.length === 0) return;
-    setPhotos(newPhotos);
-    setNewPhotos([]);
-  }, [currentIndex, newPhotos]);
-
-  useEffect(() => {
-    console.log("photos changed:", photos.length);
-    if (photos.length === 0) return;
-    setCurrentIndex(0);
-  }, [photos]);
-
-  // 2. Fullscreen & Keyboard Handlers
-  useEffect(() => {
-    if (isOpen && containerRef.current) {
-      containerRef.current.requestFullscreen().catch((err) => {
-        console.warn("Could not enter fullscreen mode:", err);
-      });
-    } else if (!isOpen && document.fullscreenElement) {
-      document.exitFullscreen().catch(console.warn);
+    if (isOpen && containerRef.current && !document.fullscreenElement) {
+       containerRef.current.requestFullscreen().catch(console.warn);
     }
 
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && isOpen) onClose();
+        if (!document.fullscreenElement && isOpen) {
+             onClose();
+        }
     };
+    
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () =>
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  // Key press handler
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const photo = photos[currentIndex];
-  console.log(loadingMore);
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "ArrowRight") handleNext();
+        if (e.key === "ArrowLeft") handlePrev();
+        if (e.key === " ") {
+            e.preventDefault();
+            togglePlay();
+        }
+        if (e.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, handleNext, handlePrev, togglePlay, onClose]);
+
+  const handleMouseMove = () => {
+      setShowControls(true);
+      if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
+      hideControlsTimer.current = setTimeout(() => {
+          if (isPlaying) setShowControls(false); 
+      }, 3000);
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div
       ref={containerRef}
       className="fixed inset-0 z-50 bg-black flex items-center justify-center animate-in fade-in duration-300"
+      onMouseMove={handleMouseMove}
+      onClick={() => {
+        setShowControls(true);
+      }}
     >
-      <button
-        onClick={onClose}
-        className="absolute top-5 right-5 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all z-10"
-      >
-        <X size={32} />
-        <span className="sr-only">Close</span>
-      </button>
-
-      {loading ? (
-        <div className="flex flex-col items-center text-white/80">
-          <Loader2 className="h-10 w-10 animate-spin mb-4" />
-          <p className="text-lg">Loading photos player...</p>
+      {/* Loading State */}
+      {isLoading && !currentPhoto && (
+        <div className="flex flex-col items-center text-white/80 z-20">
+          <Loader2 className="h-12 w-12 animate-spin mb-4 text-primary" />
+          <p className="text-xl font-light tracking-wide">Curating your slideshow...</p>
         </div>
-      ) : !photo ? (
-        <div className="text-white/80 text-center px-4">
-          <p className="text-xl mb-2">No photos found.</p>
-          <p className="text-sm">Try adjusting your filters.</p>
-        </div>
-      ) : (
-        <div className="relative w-full h-full flex items-center justify-center p-4">
-          <img
-            // Using ID as key ensures React handles the DOM transition correctly
-            key={photo.id}
-            src={photo.image_url}
-            alt={photo.RegistrationHistory.registration}
-            className="max-h-full max-w-full object-contain shadow-2xl"
-          />
-          <div className="absolute w-4xl bottom-10 bg-black/50 text-white px-4 py-4 rounded-lg backdrop-blur-sm">
-            <div className="flex flex-row justify-between items-start">
-              <div>
-                <p className="text-2xl font-semibold">
-                  {getAircraftName(photo, false)}
-                </p>
-                <p className="mt-1 text-gray-300 text-lg">
-                  {photo.RegistrationHistory.registration}{" "}
-                </p>
-              </div>
+      )}
 
-              <div>
-                <p className="text-2xl">{getAirportName(photo.Airport)}</p>
-                <p className="mt-2 text-lg text-gray-300 text-end">
-                  Taken on {new Date(photo.taken_at).toLocaleString()}
-                </p>
-              </div>
+      {/* No Photos State */}
+      {!isLoading && !currentPhoto && (
+        <div className="text-white/80 text-center px-4 z-20">
+          <p className="text-2xl mb-2 font-light">No photos found.</p>
+          <p className="text-lg opacity-70">Try adjusting your filters.</p>
+          <Button onClick={onClose} variant="outline" className="mt-6">
+            Close Player
+          </Button>
+        </div>
+      )}
+
+      {/* Main Image */}
+      {currentPhoto && (
+        <>
+            <div className="absolute inset-0 flex items-center justify-center bg-black transition-opacity duration-500">
+                {/* Background Blur Effect */}
+                <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl scale-110"
+                    style={{ backgroundImage: `url(${currentPhoto.image_url})` }}
+                />
+                
+                <img
+                    key={currentPhoto.id}
+                    src={currentPhoto.image_url}
+                    alt={currentPhoto.RegistrationHistory.registration}
+                    className="relative max-h-screen max-w-full object-contain shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-700"
+                />
             </div>
-          </div>
-        </div>
+
+            {/* Top Bar (Close) */}
+            <div className={cn(
+                "absolute top-0 left-0 right-0 p-6 flex justify-end z-30 transition-opacity duration-300 bg-gradient-to-b from-black/60 to-transparent",
+                showControls ? "opacity-100" : "opacity-0"
+            )}>
+                <button
+                    onClick={onClose}
+                    className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all"
+                >
+                    <X size={32} />
+                </button>
+            </div>
+
+            {/* Bottom Controls & Info */}
+            <div className={cn(
+                "absolute bottom-0 left-0 right-0 p-8 z-30 transition-all duration-500 bg-gradient-to-t from-black/90 via-black/50 to-transparent",
+                "translate-y-0 opacity-100" 
+            )}>
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-end md:items-center justify-between gap-6">
+                    {/* Info Section */}
+                    <div className="flex-1 text-left space-y-2">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-3xl font-bold text-white tracking-tight">
+                                {clientName(currentPhoto)}
+                            </h2>
+                            <span className="px-2 py-0.5 rounded text-xs font-mono bg-white/20 text-white/90 border border-white/10">
+                                {currentPhoto.RegistrationHistory.registration}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-lg">
+                           <span className="font-bold text-white/90">{getAircraftName(currentPhoto, false)}</span>
+                           <span className="text-white/40">•</span>
+                           <span className="text-white/70">{getAirportName(currentPhoto.Airport)}</span>
+                        </div>
+                    </div>
+
+                    {/* Right Side: Date */}
+                    <div className="text-right">
+                        <div className="text-white/60 font-light text-lg">
+                            {new Date(currentPhoto.taken_at).toLocaleDateString(undefined, { 
+                                year: 'numeric', month: 'long', day: 'numeric' 
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
       )}
     </div>
   );
+}
+
+// Helper to reliably get airline name or fallback
+function clientName(photo: any) {
+    if (photo.RegistrationHistory.airline) return photo.RegistrationHistory.airline;
+    return "Private / Unknown";
 }

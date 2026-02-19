@@ -8,25 +8,24 @@ import exifr from "exifr";
 export const AddImageExif = ({
   formData,
   setFormData,
+  file,
 }: {
   formData: UploadPhotoRequest;
   setFormData: React.Dispatch<React.SetStateAction<UploadPhotoRequest>>;
+  file: File | null;
 }) => {
   const [extracting, setExtracting] = useState(false);
 
   useEffect(() => {
-    extractImageExif(formData.image_url);
-  }, [formData.image_url]);
+    if (file) {
+      extractImageExif(file);
+    }
+  }, [file]);
 
-  const extractImageExif = async (url: string) => {
-    if (!url) return;
-
+  const extractImageExif = async (file: File) => {
     setExtracting(true);
     try {
-      let urlToUse =
-        "https://dry-savannah-31116-8d7296f5ae66.herokuapp.com/" + url;
-
-      const output = await exifr.parse(urlToUse, {
+      const output = await exifr.parse(file, {
         pick: [
           "DateTimeOriginal",
           "ExposureTime",
@@ -46,6 +45,7 @@ export const AddImageExif = ({
       if (output.DateTimeOriginal) {
         // Convert Date object to "YYYY-MM-DDTHH:mm"
         const date = new Date(output.DateTimeOriginal);
+        // Adjust for timezone offset to get local string representation
         const offset = date.getTimezoneOffset() * 60000;
         const localISOTime = new Date(date.getTime() - offset)
           .toISOString()
@@ -65,7 +65,7 @@ export const AddImageExif = ({
         ...updates,
       }));
 
-      if (Object.keys(updates).length == 6) {
+      if (Object.keys(updates).length >= 1) {
         toast.success("EXIF data extracted successfully!");
       }
     } catch (err) {
@@ -85,7 +85,9 @@ export const AddImageExif = ({
   return (
     <>
       {extracting ? (
-        <Spinner />
+        <div className="md:col-span-3 flex justify-center py-4">
+          <Spinner />
+        </div>
       ) : (
         <>
           <div className="md:col-span-3">
