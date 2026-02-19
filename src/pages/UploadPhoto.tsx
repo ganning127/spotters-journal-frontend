@@ -281,30 +281,32 @@ export default function UploadPhoto() {
           </div>
         )}
 
-        {/* Step 4: Details */}
-        {step === 4 && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-             <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <Camera size={24} />
-              </div>
-              <h2 className="text-xl font-semibold">Photo Details</h2>
-            </div>
+            {/* Hidden EXIF extraction to allow early date access */}
+            {/* Hidden EXIF extraction to allow early date access */}
+            <div className={cn(
+              "space-y-4 animate-in fade-in slide-in-from-right-4 duration-300",
+               step !== 4 && "hidden"
+            )}>
+                 <Section className="border-none p-0">
+                   <div className="flex items-center gap-2 mb-4">
+                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                        <Camera size={24} />
+                      </div>
+                      <h2 className="text-xl font-semibold">Photo Details</h2>
+                   </div>
 
-            <Section className="border-none p-0">
-               {selectedFile && (
-                  <div className={cn(
-                    "grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg transition-colors border",
-                    formData.taken_at
-                      ? "bg-primary/5 border-primary/20"
-                      : "bg-warning/10 border-warning/20",
-                  )}>
-                    <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
-                  </div>
-               )}
-            </Section>
-          </div>
-        )}
+                   {selectedFile && (
+                      <div className={cn(
+                        "grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg transition-colors border",
+                        formData.taken_at
+                          ? "bg-primary/5 border-primary/20"
+                          : "bg-warning/10 border-warning/20",
+                      )}>
+                        <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
+                      </div>
+                   )}
+                 </Section>
+            </div>
 
         {/* Step 5: Review */}
         {step === 5 && (

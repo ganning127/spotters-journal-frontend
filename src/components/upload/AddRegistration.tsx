@@ -2,13 +2,12 @@ import api from "@/api/axios";
 import type { UploadPhotoRequest } from "@/types";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircleIcon } from "lucide-react";
+import { AlertCircleIcon, Calendar, MapPin } from "lucide-react";
 import { Field, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
 import { Spinner } from "../ui/spinner";
 import { NewAircraftSelector } from "./NewAircraftSelector";
-import { rectifyFormat } from "@/lib/utils";
-
+import { rectifyFormat, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface Suggestion {
@@ -25,21 +24,25 @@ interface Suggestion {
   };
 }
 
-const AircraftInfoDisplay = ({ aircraft }: { aircraft: Suggestion }) => {
-  const userPhoto =
-    aircraft.Photo && aircraft.Photo.length > 0 ? aircraft.Photo[0] : null;
+const AircraftInfoDisplay = ({ aircraft, currentTakenAt }: { aircraft: Suggestion; currentTakenAt?: string }) => {
+  const userPhotos = aircraft.Photo || [];
+
+  const isProximate = (photoDate: string) => {
+      if (!currentTakenAt) return false;
+      try {
+          const d1 = new Date(currentTakenAt + (currentTakenAt.endsWith("Z") ? "" : "Z"));
+          const d2 = new Date(photoDate); // these dates are not the actual time the photo was taken, but it's fine since we are comparing them with each other
+          
+          const diffMs = Math.abs(d1.getTime() - d2.getTime());
+          const diffMins = diffMs / (1000 * 60);
+          return diffMins <= 30;
+      } catch (e) {
+          return false;
+      }
+  };
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      {userPhoto && (
-        <div className="w-full aspect-video rounded-md overflow-hidden border border-border">
-          <img
-            src={userPhoto.image_url}
-            alt="Your last photo"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
       <div>
         <div className="font-medium text-lg leading-tight">
           {aircraft.SpecificAircraft.manufacturer} {aircraft.SpecificAircraft.type}
@@ -50,12 +53,46 @@ const AircraftInfoDisplay = ({ aircraft }: { aircraft: Suggestion }) => {
         <div className="text-muted-foreground text-sm">
           {aircraft.airline_name || aircraft.airline || "Unknown Airline"}
         </div>
-        {userPhoto && (
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Your last photo: {rectifyFormat(userPhoto.taken_at)}
-          </div>
-        )}
       </div>
+
+      {userPhotos.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 mt-3">
+            {userPhotos.map((photo, index) => {
+                const proximate = isProximate(photo.taken_at);
+                return (
+                <div 
+                    key={index} 
+                    className={cn(
+                        "flex flex-col gap-2 p-2 rounded-lg border transition-colors relative",
+                         proximate ? "bg-amber-500/10 border-amber-500/50 hover:bg-amber-500/20" : "bg-card/50 hover:bg-card border-border"
+                    )}
+                >
+                    {proximate && (
+                        <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm z-10">
+                            WITHIN 30M
+                        </div>
+                    )}
+                    <div className="w-full aspect-video rounded-md overflow-hidden border border-border/50 bg-muted relative group">
+                        <img
+                            src={photo.image_url}
+                            alt={`Photo from ${photo.taken_at}`}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                    </div>
+                    <div className="flex items-center justify-between px-1">
+                        <div className={cn("flex items-center gap-1.5 text-xs", proximate ? "text-amber-600 font-medium" : "text-muted-foreground")}>
+                            <Calendar className="w-3.5 h-3.5 opacity-70" />
+                            <span>{rectifyFormat(photo.taken_at)}</span>
+                        </div>
+                         <div className="flex items-center gap-1.5 text-xs font-medium text-foreground/80 bg-secondary/50 px-1.5 py-0.5 rounded-sm">
+                            <MapPin className="w-3.5 h-3.5 opacity-70" />
+                            <span>{photo.airport_code}</span>
+                        </div>
+                    </div>
+                </div>
+            )})}
+        </div>
+      )}
     </div>
   );
 };
@@ -176,7 +213,7 @@ export const AddRegistration = ({
                  Found existing aircraft
               </AlertTitle>
               <AlertDescription>
-                 <AircraftInfoDisplay aircraft={confirmedAircraft} />
+                 <AircraftInfoDisplay aircraft={confirmedAircraft} currentTakenAt={formData.taken_at} />
                 
                 <div className="mt-2 flex items-center gap-2 text-success font-medium">
                     <span>✓ Confirmed</span>
@@ -202,7 +239,7 @@ export const AddRegistration = ({
               <p className="text-sm text-muted-foreground font-medium">Found {suggestions.length} aircraft for this registration:</p>
               {suggestions.map((aircraft, idx) => (
                   <div key={idx} className="border rounded-lg p-3 flex flex-col gap-3 bg-card hover:bg-accent/50 transition-colors">
-                      <AircraftInfoDisplay aircraft={aircraft} />
+                      <AircraftInfoDisplay aircraft={aircraft} currentTakenAt={formData.taken_at} />
                       <Button size="sm" variant="secondary" className="w-full" onClick={() => handleSelectAircraft(aircraft)}>
                           Select
                       </Button>
