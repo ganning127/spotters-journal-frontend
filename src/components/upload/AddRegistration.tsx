@@ -7,6 +7,7 @@ import { Field, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
 import { Spinner } from "../ui/spinner";
 import { NewAircraftSelector } from "./NewAircraftSelector";
+import { rectifyFormat } from "@/lib/utils";
 
 interface Suggestion {
   type_id: string;
@@ -91,7 +92,7 @@ export const AddRegistration = ({
               />
               <p className="text-center w-full">
                 {mostRecentPhoto.airport_code} •{" "}
-                {new Date(mostRecentPhoto.taken_at).toLocaleString()}
+                {rectifyFormat(mostRecentPhoto.taken_at)}
               </p>
             </AlertDescription>
           </Alert>

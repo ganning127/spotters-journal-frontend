@@ -17,3 +17,17 @@ export const stringToColour = (str: string) => {
   }
   return colour;
 };
+
+export function rectifyFormat(s: string) {
+  if (!s) return "";
+
+  const year = s.slice(0, 4);
+  const month = s.slice(5, 7);
+  const day = s.slice(8, 10);
+  const hour = s.slice(11, 13);
+  const minute = s.slice(14, 16); 
+  const ampm = parseInt(hour) >= 12 ? "PM" : "AM";
+  const hour12 = parseInt(hour) > 12 ? parseInt(hour) - 12 : parseInt(hour);
+
+  return `${month}-${day}-${year}, ${hour12}:${minute} ${ampm}`;
+}
