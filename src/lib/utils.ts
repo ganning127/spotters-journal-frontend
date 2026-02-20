@@ -31,3 +31,5 @@ export function rectifyFormat(s: string) {
 
   return `${month}-${day}-${year}, ${hour12}:${minute} ${ampm}`;
 }
+
+export const CACHED_SELECTION_KEY = "spotters_cached_selection";

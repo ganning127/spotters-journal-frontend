@@ -7,10 +7,10 @@ import { AirportSelector } from "@/components/upload/AirportSelector";
 import { Field, FieldDescription, FieldSet } from "@/components/ui/field";
 import { Section } from "@/components/upload/Section";
 import { AddImageExif } from "@/components/upload/AddImageExif";
-import { cn } from "@/lib/utils";
+import { cn, CACHED_SELECTION_KEY } from "@/lib/utils";
 import { toast } from "sonner";
 import { AddRegistration } from "@/components/upload/AddRegistration";
-import { ImagePlus, Plane, MapPin, Camera, CheckCircle } from "lucide-react";
+import { ImagePlus, Plane, MapPin, Camera, CheckCircle, Calendar } from "lucide-react";
 import { UploadSteps } from "@/components/upload/UploadSteps";
 import { ImageMagnifier } from "@/components/ui/image-magnifier";
 
@@ -124,15 +124,15 @@ export default function UploadPhoto() {
       data.append("camera_model", formData.camera_model || "");
       data.append("focal_length", formData.focal_length || "");
       data.append("airline_code", formData.airline_code || "");
-      
+
       if (formData.aircraft_type_id) {
-         data.append("aircraft_type_id", formData.aircraft_type_id);
+        data.append("aircraft_type_id", formData.aircraft_type_id);
       }
       if (formData.uuid_rh) {
-         data.append("uuid_rh", formData.uuid_rh);
+        data.append("uuid_rh", formData.uuid_rh);
       }
       if (formData.manufactured_date) {
-         data.append("manufactured_date", formData.manufactured_date);
+        data.append("manufactured_date", formData.manufactured_date);
       }
 
       data.append("airport_icao_code", formData.airport_icao_code || "");
@@ -145,6 +145,7 @@ export default function UploadPhoto() {
       });
 
       toast.success("Photo uploaded successfully!");
+      localStorage.removeItem(CACHED_SELECTION_KEY);
       setFormData(defaultData);
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -176,33 +177,33 @@ export default function UploadPhoto() {
               </div>
               <h2 className="text-xl font-semibold">Select Photo</h2>
             </div>
-            
+
             <Section className="border-none p-0">
-               {!selectedFile ? (
-                <div 
+              {!selectedFile ? (
+                <div
                   className={cn(
                     "border-2 border-dashed rounded-xl p-16 flex flex-col items-center justify-center transition-all cursor-pointer relative bg-muted/20",
-                    isDragging 
-                      ? "border-primary bg-primary/5 scale-[1.01]" 
+                    isDragging
+                      ? "border-primary bg-primary/5 scale-[1.01]"
                       : "border-border/50 hover:border-primary/50 hover:bg-muted/40"
                   )}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                   />
                   <div className="p-4 bg-background rounded-full shadow-sm mb-4">
-                    <ImagePlus 
-                      size={32} 
+                    <ImagePlus
+                      size={32}
                       className={cn(
                         "transition-colors",
                         isDragging ? "text-primary" : "text-muted-foreground"
-                      )} 
+                      )}
                     />
                   </div>
                   <p className={cn("text-lg font-medium transition-colors mb-2", isDragging && "text-primary")}>
@@ -211,24 +212,24 @@ export default function UploadPhoto() {
                   <p className="text-sm text-muted-foreground">JPEG, PNG up to 10MB</p>
                 </div>
               ) : (
-                 <div className="relative group">
-                     <img
-                         src={previewUrl!}
-                         alt="Preview"
-                         className="w-full max-h-[400px] object-contain rounded-lg bg-muted shadow-inner"
-                     />
-                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                        <Button 
-                            variant="secondary"
-                            onClick={() => {
-                                setSelectedFile(null);
-                                setPreviewUrl(null);
-                            }}
-                        >
-                            Change Photo
-                        </Button>
-                     </div>
-                 </div>
+                <div className="relative group">
+                  <img
+                    src={previewUrl!}
+                    alt="Preview"
+                    className="w-full max-h-[400px] object-contain rounded-lg bg-muted shadow-inner"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        setPreviewUrl(null);
+                      }}
+                    >
+                      Change Photo
+                    </Button>
+                  </div>
+                </div>
               )}
             </Section>
           </div>
@@ -237,34 +238,45 @@ export default function UploadPhoto() {
         {/* Step 2: Aircraft */}
         {step === 2 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-             <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
                 <Plane size={24} />
               </div>
               <h2 className="text-xl font-semibold">Aircraft Details</h2>
             </div>
-            
+
             <div className="space-y-6">
-                <Section className="border-none p-0">
-                  <AddRegistration formData={formData} setFormData={setFormData} />
-                </Section>
-                {previewUrl && (
-                  <div className="w-full bg-muted/30 rounded-lg p-2 flex justify-center border border-dashed">
-                     <ImageMagnifier 
-                        src={previewUrl} 
-                        alt="Reference" 
-                        className="rounded-lg shadow-sm max-h-[400px]" 
-                      />
-                  </div>
-                )}
+              <Section className="border-none p-0">
+                <AddRegistration formData={formData} setFormData={setFormData} />
+              </Section>
+              {previewUrl && (
+                <div className="w-full bg-muted/30 rounded-lg p-2 flex flex-col items-center gap-2 border border-dashed">
+                  {formData.taken_at && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
+                      <Calendar size={14} />
+                      <span>
+                        Taken {new Date(formData.taken_at).toLocaleString(undefined, {
+                          dateStyle: "medium",
+                          timeStyle: "short"
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  <ImageMagnifier
+                    src={previewUrl}
+                    alt="Reference"
+                    className="rounded-lg shadow-sm max-h-[400px]"
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Step 3: Location */}
         {step === 3 && (
-           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-             <div className="flex items-center gap-2 mb-4">
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="flex items-center gap-2 mb-4">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
                 <MapPin size={24} />
               </div>
@@ -281,37 +293,36 @@ export default function UploadPhoto() {
           </div>
         )}
 
-            {/* Hidden EXIF extraction to allow early date access */}
-            {/* Hidden EXIF extraction to allow early date access */}
-            <div className={cn(
-              "space-y-4 animate-in fade-in slide-in-from-right-4 duration-300",
-               step !== 4 && "hidden"
-            )}>
-                 <Section className="border-none p-0">
-                   <div className="flex items-center gap-2 mb-4">
-                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <Camera size={24} />
-                      </div>
-                      <h2 className="text-xl font-semibold">Photo Details</h2>
-                   </div>
-
-                   {selectedFile && (
-                      <div className={cn(
-                        "grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg transition-colors border",
-                        formData.taken_at
-                          ? "bg-primary/5 border-primary/20"
-                          : "bg-warning/10 border-warning/20",
-                      )}>
-                        <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
-                      </div>
-                   )}
-                 </Section>
+        {/* Hidden EXIF extraction to allow early date access */}
+        <div className={cn(
+          "space-y-4 animate-in fade-in slide-in-from-right-4 duration-300",
+          step !== 4 && "hidden"
+        )}>
+          <Section className="border-none p-0">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <Camera size={24} />
+              </div>
+              <h2 className="text-xl font-semibold">Photo Details</h2>
             </div>
+
+            {selectedFile && (
+              <div className={cn(
+                "grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg transition-colors border",
+                formData.taken_at
+                  ? "bg-primary/5 border-primary/20"
+                  : "bg-warning/10 border-warning/20",
+              )}>
+                <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
+              </div>
+            )}
+          </Section>
+        </div>
 
         {/* Step 5: Review */}
         {step === 5 && (
-           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-             <div className="flex items-center gap-2 mb-4">
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="flex items-center gap-2 mb-4">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
                 <CheckCircle size={24} />
               </div>
@@ -320,9 +331,9 @@ export default function UploadPhoto() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <img 
-                  src={previewUrl!} 
-                  alt="Preview" 
+                <img
+                  src={previewUrl!}
+                  alt="Preview"
                   className="w-full rounded-lg shadow-sm border"
                 />
               </div>
@@ -332,7 +343,7 @@ export default function UploadPhoto() {
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registration</span>
                     <p className="font-semibold text-lg">{formData.registration}</p>
                     {formData.aircraft_type_id && (
-                       <p className="text-sm text-muted-foreground">{formData.aircraft_type_id}</p>
+                      <p className="text-sm text-muted-foreground">{formData.aircraft_type_id}</p>
                     )}
                   </div>
                   <div>
@@ -349,16 +360,16 @@ export default function UploadPhoto() {
                     </p>
                   </div>
                   {(formData.camera_model || formData.shutter_speed) && (
-                     <div className="pt-2 border-t">
-                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Exif Data</span>
-                       <div className="grid grid-cols-3 gap-2 mt-1 text-sm">
-                          {formData.camera_model && <div>Camera: {formData.camera_model}</div>}
-                          {formData.shutter_speed && <div>Shutter: {formData.shutter_speed}</div>}
-                          {formData.aperture && <div>Aperture: {formData.aperture}</div>}
-                          {formData.iso && <div>ISO: {formData.iso}</div>}
-                          {formData.focal_length && <div className="col-span-2">Focal Length: {formData.focal_length}</div>}
-                       </div>
-                     </div>
+                    <div className="pt-2 border-t">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Exif Data</span>
+                      <div className="grid grid-cols-3 gap-2 mt-1 text-sm">
+                        {formData.camera_model && <div>Camera: {formData.camera_model}</div>}
+                        {formData.shutter_speed && <div>Shutter: {formData.shutter_speed}</div>}
+                        {formData.aperture && <div>Aperture: {formData.aperture}</div>}
+                        {formData.iso && <div>ISO: {formData.iso}</div>}
+                        {formData.focal_length && <div className="col-span-2">Focal Length: {formData.focal_length}</div>}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -369,21 +380,21 @@ export default function UploadPhoto() {
         {/* Navigation Buttons */}
         <div className="flex justify-between mt-8 pt-6 border-t">
           <Button
-            variant="ghost" 
+            variant="ghost"
             onClick={prevStep}
             disabled={step === 1 || loading}
             className={cn(step === 1 && "invisible")}
           >
             Back
           </Button>
-          
+
           {step < 5 ? (
             <Button onClick={nextStep}>
               Next Step
             </Button>
           ) : (
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               disabled={loading}
               className="bg-primary hover:bg-primary/90 min-w-[120px]"
             >
