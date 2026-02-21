@@ -9,7 +9,7 @@ interface ImageMagnifierProps {
   className?: string;
 }
 
-export function ImageMagnifier({ src, alt = "", zoomLevel = 2.5, className }: ImageMagnifierProps) {
+export function ImageMagnifier({ src, alt = "", zoomLevel = 3.5, className }: ImageMagnifierProps) {
   const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({ display: "none" });
   const imgRef = useRef<HTMLImageElement>(null);
   const lensSize = 120; // Size of the circular lens
@@ -18,7 +18,7 @@ export function ImageMagnifier({ src, alt = "", zoomLevel = 2.5, className }: Im
     if (!imgRef.current) return;
 
     const { left, top, width, height } = imgRef.current.getBoundingClientRect();
-    
+
     // Calculate cursor position relative to the image
     const x = e.clientX - left;
     const y = e.clientY - top;
@@ -52,15 +52,15 @@ export function ImageMagnifier({ src, alt = "", zoomLevel = 2.5, className }: Im
   };
 
   return (
-    <div 
-      className={cn("relative overflow-hidden cursor-crosshair group rounded-lg", className)} 
-      onMouseMove={handleMouseMove} 
+    <div
+      className={cn("relative overflow-hidden cursor-crosshair group rounded-lg", className)}
+      onMouseMove={handleMouseMove}
       onMouseLeave={() => setZoomStyle({ display: "none" })}
     >
-      <img 
-        ref={imgRef} 
-        src={src} 
-        alt={alt} 
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
         className="w-full h-auto object-contain block" // Ensure block display to remove bottom gap
       />
       <div style={zoomStyle} className="shadow-2xl" />

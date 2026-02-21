@@ -5,7 +5,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BadgeCheck, Calendar, MapPin } from "lucide-react";
 import { Field, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
-import { Spinner } from "../ui/spinner";
 import { NewAircraftSelector } from "./NewAircraftSelector";
 import { rectifyFormat, cn, CACHED_SELECTION_KEY } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -173,7 +172,7 @@ export const AddRegistration = ({
       const res = await api.get(`/aircraft/search?q=${formData.registration}`);
       const data = res.data;
       if (!data.is_new_aircraft) {
-        setSuggestions(data.aircraft); // This is now an array
+        setSuggestions(data.aircraft);
         setIsNewAircraft(false);
         setConfirmedAircraft(null);
 
@@ -249,13 +248,19 @@ export const AddRegistration = ({
           required
           value={formData.registration}
           onBlur={searchRegistrations}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              searchRegistrations();
+            }
+          }}
+          disabled={loading}
           onChange={(e) => {
             setFormData({
               ...formData,
               registration: e.target.value.toUpperCase(),
             });
-            if (suggestions) setSuggestions(null);
-            if (isNewAircraft) setIsNewAircraft(false);
+            setSuggestions(null);
+            setIsNewAircraft(false);
             if (confirmedAircraft) {
               setConfirmedAircraft(null);
               setFormData(prev => ({ ...prev, uuid_rh: "" })); // Clear UUID if user changes registration text after determining it
@@ -264,7 +269,7 @@ export const AddRegistration = ({
         />
       </FieldSet>
 
-      {loading && <Spinner className="mt-2" />}
+      {/* {loading && <Spinner className="mt-2 text-center" />} */}
 
       {/* Case: Single Confirmed Aircraft (either auto-selected or user-selected) */}
       {confirmedAircraft && !isNewAircraft && (
@@ -314,22 +319,26 @@ export const AddRegistration = ({
         </div>
       )}
 
+
       {isNewAircraft && (
         <>
-          <NewAircraftSelector formData={formData} setFormData={setFormData} />
-          {suggestions && (
-            <button
-              className="mt-2 text-sm text-muted-foreground hover:text-primary underline"
-              onClick={() => {
-                setIsNewAircraft(false);
-                if (suggestions.length === 1) {
-                  handleSelectAircraft(suggestions[0]);
-                }
-              }}
-            >
-              Wait, go back to found aircraft
-            </button>
-          )}
+          <div className='bg-gray-100 p-4 rounded-lg mt-2'>
+            <p className="text-sm text-muted-foreground font-medium">You&apos;re the first to spot this aircraft on our platform! Please enter its information:</p>
+            <NewAircraftSelector formData={formData} setFormData={setFormData} />
+            {suggestions && (
+              <button
+                className="mt-2 text-sm text-muted-foreground hover:text-primary underline"
+                onClick={() => {
+                  setIsNewAircraft(false);
+                  if (suggestions.length === 1) {
+                    handleSelectAircraft(suggestions[0]);
+                  }
+                }}
+              >
+                Wait, go back to found aircraft
+              </button>
+            )}
+          </div>
         </>
       )}
     </>

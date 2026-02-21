@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import api from "../api/axios";
 import type { UploadPhotoRequest } from "../types";
@@ -39,9 +39,9 @@ const defaultData = {
 
 const STEPS = [
   { id: 1, label: "Upload" },
-  { id: 2, label: "Registration" },
-  { id: 3, label: "Location" },
-  { id: 4, label: "Metadata" },
+  { id: 2, label: "Metadata" },
+  { id: 3, label: "Registration" },
+  { id: 4, label: "Location" },
   { id: 5, label: "Review" },
 ];
 
@@ -85,15 +85,20 @@ export default function UploadPhoto() {
   };
 
   const nextStep = () => {
+    console.log('in nextStep', formData.taken_at)
     if (step === 1 && !selectedFile) {
       toast.error("Please select an image first.");
       return;
     }
-    if (step === 2 && !formData.registration) {
+    if (step == 2 && !formData.taken_at) {
+      toast.error("Please enter when the photo was taken.");
+      return;
+    }
+    if (step === 3 && !formData.registration) {
       toast.error("Please enter a registration.");
       return;
     }
-    if (step === 3 && !formData.airport_code) {
+    if (step === 4 && !formData.airport_code) {
       toast.error("Please select an airport.");
       return;
     }
@@ -103,6 +108,36 @@ export default function UploadPhoto() {
   const prevStep = () => {
     setStep((s) => Math.max(s - 1, 1));
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.code === "ArrowRight" &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement) &&
+        !(e.target instanceof HTMLButtonElement)
+      ) {
+        e.preventDefault();
+        if (step < 5) {
+          nextStep();
+        }
+      }
+
+      if (
+        e.code === "ArrowLeft" &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement) &&
+        !(e.target instanceof HTMLButtonElement)
+      ) {
+        e.preventDefault();
+        if (step > 1) {
+          prevStep();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [step, selectedFile, formData.registration, formData.airport_code, formData.taken_at]);
 
   const handleSubmit = async () => {
     if (!selectedFile) {
@@ -235,8 +270,24 @@ export default function UploadPhoto() {
           </div>
         )}
 
-        {/* Step 2: Aircraft */}
+        {/* Step 2: Metadata */}
         {step === 2 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <Camera size={24} />
+              </div>
+              <h2 className="text-xl font-semibold">Photo Details</h2>
+            </div>
+
+            <Section className="border-none p-0">
+              <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
+            </Section>
+          </div>
+        )}
+
+        {/* Step 3: Aircraft */}
+        {step === 3 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
@@ -252,7 +303,7 @@ export default function UploadPhoto() {
               {previewUrl && (
                 <div className="w-full bg-muted/30 rounded-lg p-2 flex flex-col items-center gap-2 border border-dashed">
                   {formData.taken_at && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
                       <Calendar size={14} />
                       <span>
                         Taken {new Date(formData.taken_at).toLocaleString(undefined, {
@@ -262,19 +313,23 @@ export default function UploadPhoto() {
                       </span>
                     </div>
                   )}
+
+                  <p className="text-sm text-muted-foreground">Hover over the image to enlarge the aircraft&apos;s registration</p>
+
                   <ImageMagnifier
                     src={previewUrl}
                     alt="Reference"
                     className="rounded-lg shadow-sm max-h-[400px]"
                   />
+
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Step 3: Location */}
-        {step === 3 && (
+        {/* Step 4: Location */}
+        {step === 4 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
@@ -292,32 +347,6 @@ export default function UploadPhoto() {
             </Section>
           </div>
         )}
-
-        {/* Hidden EXIF extraction to allow early date access */}
-        <div className={cn(
-          "space-y-4 animate-in fade-in slide-in-from-right-4 duration-300",
-          step !== 4 && "hidden"
-        )}>
-          <Section className="border-none p-0">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <Camera size={24} />
-              </div>
-              <h2 className="text-xl font-semibold">Photo Details</h2>
-            </div>
-
-            {selectedFile && (
-              <div className={cn(
-                "grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg transition-colors border",
-                formData.taken_at
-                  ? "bg-primary/5 border-primary/20"
-                  : "bg-warning/10 border-warning/20",
-              )}>
-                <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
-              </div>
-            )}
-          </Section>
-        </div>
 
         {/* Step 5: Review */}
         {step === 5 && (

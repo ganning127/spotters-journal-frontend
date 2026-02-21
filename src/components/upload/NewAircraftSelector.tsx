@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Field, FieldSet } from "../ui/field";
-import { Input } from "../ui/input";
+import { Spinner } from "../ui/spinner";
 
 export const NewAircraftSelector = ({
   formData,
@@ -18,18 +18,23 @@ export const NewAircraftSelector = ({
   formData: UploadPhotoRequest;
   setFormData: React.Dispatch<React.SetStateAction<UploadPhotoRequest>>;
 }) => {
+  const [loadingData, setLoadingData] = useState(false);
+  const [loadingPrePopulate, setLoadingPrePopulate] = useState(false);
   const [aircraftTypes, setAircraftTypes] = useState<AircraftType[]>([]);
   const [airlines, setAirlines] = useState<Airline[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoadingData(true);
         const typeRes = await api.get<AircraftType[]>("/aircraft-types");
         setAircraftTypes(typeRes.data);
         const airlineRes = await api.get<Airline[]>("/airlines");
         setAirlines(airlineRes.data);
       } catch (err) {
         console.error("Failed to load form data", err);
+      } finally {
+        setLoadingData(false);
       }
     };
 
@@ -39,6 +44,7 @@ export const NewAircraftSelector = ({
   useEffect(() => {
     if (airlines.length === 0) return;
     const prePopulateData = async () => {
+      setLoadingPrePopulate(true);
       const registration = formData.registration.toUpperCase();
 
       try {
@@ -82,6 +88,8 @@ export const NewAircraftSelector = ({
         }
       } catch (error) {
         console.error("Pre-population failed", error);
+      } finally {
+        setLoadingPrePopulate(false);
       }
     };
 
@@ -89,75 +97,83 @@ export const NewAircraftSelector = ({
   }, [formData.registration, airlines]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-      <div>
-        <FieldSet>
-          <Field>Aircraft Type</Field>
+    <>
+      {
+        loadingData || loadingPrePopulate && <div className="flex gap-2 items-center">
+          <Spinner />
+        </div>
+      }
 
-          <Select
-            required={true}
-            value={formData.aircraft_type_id}
-            onValueChange={(value) => {
-              setFormData({
-                ...formData,
-                aircraft_type_id: value,
-              });
-            }}
-          >
-            <SelectTrigger className="w-full p-2 rounded-lg text-md">
-              <SelectValue placeholder="Select Aircraft..." />
-            </SelectTrigger>
-            <SelectContent>
-              {aircraftTypes.map((t) => (
-                <SelectItem key={t.icao_type} value={t.icao_type}>
-                  {t.manufacturer} {t.type} ({t.variant || t.icao_type})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FieldSet>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 text-sm">
+        <div>
+          <FieldSet>
+            <Field>Aircraft Type</Field>
+
+            <Select
+              required={true}
+              value={formData.aircraft_type_id}
+              onValueChange={(value) => {
+                setFormData({
+                  ...formData,
+                  aircraft_type_id: value,
+                });
+              }}
+            >
+              <SelectTrigger className="w-full p-2 rounded-lg text-md">
+                <SelectValue placeholder="Select Aircraft..." />
+              </SelectTrigger>
+              <SelectContent>
+                {aircraftTypes.map((t) => (
+                  <SelectItem key={t.icao_type} value={t.icao_type}>
+                    {t.manufacturer} {t.type} ({t.variant || t.icao_type})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FieldSet>
+        </div>
+        {/* <div>
+          <FieldSet>
+            <Field>Manufactured/First Flight Date</Field>
+            <Input
+              type="date"
+              value={formData.manufactured_date}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  manufactured_date: e.target.value,
+                })
+              }
+            />
+          </FieldSet>
+        </div> */}
+        <div>
+          <FieldSet>
+            <Field>Airline</Field>
+            <Select
+              required={true}
+              value={formData.airline_code}
+              onValueChange={(value) => {
+                setFormData({
+                  ...formData,
+                  airline_code: value,
+                });
+              }}
+            >
+              <SelectTrigger className="w-full p-2 rounded-lg text-md">
+                <SelectValue placeholder="Select Airline..." />
+              </SelectTrigger>
+              <SelectContent>
+                {airlines.map((a) => (
+                  <SelectItem key={a.code} value={a.code}>
+                    {a.name} ({a.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FieldSet>
+        </div>
       </div>
-      <div>
-        <FieldSet>
-          <Field>Manufactured/First Flight Date</Field>
-          <Input
-            type="date"
-            value={formData.manufactured_date}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                manufactured_date: e.target.value,
-              })
-            }
-          />
-        </FieldSet>
-      </div>
-      <div>
-        <FieldSet>
-          <Field>Airline</Field>
-          <Select
-            required={true}
-            value={formData.airline_code}
-            onValueChange={(value) => {
-              setFormData({
-                ...formData,
-                airline_code: value,
-              });
-            }}
-          >
-            <SelectTrigger className="w-full p-2 rounded-lg text-md">
-              <SelectValue placeholder="Select Airline..." />
-            </SelectTrigger>
-            <SelectContent>
-              {airlines.map((a) => (
-                <SelectItem key={a.code} value={a.code}>
-                  {a.name} ({a.code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FieldSet>
-      </div>
-    </div>
+    </>
   );
 };

@@ -15,6 +15,19 @@ interface PaginationMeta {
   totalPages: number;
 }
 
+const generatePageNumbers = (currentPage: number, totalPages: number) => {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, "...", totalPages];
+  }
+  if (currentPage >= totalPages - 3) {
+    return [1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  }
+  return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+};
+
 export default function MyPhotos() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +104,7 @@ export default function MyPhotos() {
           selectedAircraftType={selectedAircraftType}
         />
       )}
-      
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -176,7 +189,7 @@ export default function MyPhotos() {
       ) : photos.length === 0 ? (
         <div className="text-center py-24 bg-muted/30 rounded-xl border border-dashed animate-in fade-in zoom-in-95 duration-500">
           <div className="bg-muted h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
-             <Plane className="h-8 w-8 text-muted-foreground/50" />
+            <Plane className="h-8 w-8 text-muted-foreground/50" />
           </div>
           <h3 className="text-lg font-semibold text-foreground">No photos found</h3>
           <p className="text-muted-foreground mt-1 max-w-sm mx-auto">
@@ -200,41 +213,55 @@ export default function MyPhotos() {
         <div className="space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {photos.map((photo) => (
-              <div 
-               key={photo.id}
+              <div
+                key={photo.id}
               >
-                <PhotoCard 
-                    photo={photo} 
-                    onRefresh={() => {
-                      setLastRefresh(Date.now());
-                    }} 
+                <PhotoCard
+                  photo={photo}
+                  onRefresh={() => {
+                    setLastRefresh(Date.now());
+                  }}
                 />
               </div>
             ))}
           </div>
 
           {meta.totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 pt-8 border-t">
+            <div className="flex justify-center items-center gap-1 sm:gap-2 pt-8 border-t flex-wrap">
               <Button
                 variant="outline"
+                size="icon"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="w-24"
+                className="w-10 h-10 shrink-0 cursor-pointer"
               >
-                Previous
+                &lt;
               </Button>
 
-              <span className="text-sm text-muted-foreground font-medium tabular-nums">
-                Page {meta.page} of {meta.totalPages}
-              </span>
+              {generatePageNumbers(page, meta.totalPages).map((p, i) => (
+                <Button
+                  key={i}
+                  variant={p === page ? "default" : "outline"}
+                  size={p === "..." ? "sm" : "icon"}
+                  onClick={() => p !== "..." && setPage(p as number)}
+                  disabled={p === "..."}
+                  className={cn(
+                    "w-10 h-10 shrink-0 cursor-pointer",
+                    p === "..." && "border-none shadow-none cursor-default bg-transparent text-foreground hover:bg-transparent"
+                  )}
+                >
+                  {p}
+                </Button>
+              ))}
 
               <Button
                 variant="outline"
+                size="icon"
                 onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                 disabled={page >= meta.totalPages}
-                className="w-24"
+                className="w-10 h-10 shrink-0 cursor-pointer"
               >
-                Next
+                &gt;
               </Button>
             </div>
           )}
