@@ -44,17 +44,25 @@ export function SimplePhotosOverlay({
   // 1. Fullscreen & Keyboard Handlers
   useEffect(() => {
     if (isOpen && containerRef.current && !document.fullscreenElement) {
-       containerRef.current.requestFullscreen().catch(console.warn);
+      if (typeof containerRef.current.requestFullscreen === 'function') {
+        containerRef.current.requestFullscreen().catch(console.warn);
+      } else if (typeof (containerRef.current as any).webkitRequestFullscreen === 'function') {
+        (containerRef.current as any).webkitRequestFullscreen();
+      }
     }
 
     const handleFullscreenChange = () => {
-        if (!document.fullscreenElement && isOpen) {
-             onClose();
-        }
+      if (!document.fullscreenElement && (document as any).webkitFullscreenElement === undefined && isOpen) {
+        onClose();
+      }
     };
-    
+
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+    };
   }, [isOpen, onClose]);
 
   // Key press handler
@@ -62,13 +70,13 @@ export function SimplePhotosOverlay({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "ArrowRight") handleNext();
-        if (e.key === "ArrowLeft") handlePrev();
-        if (e.key === " ") {
-            e.preventDefault();
-            togglePlay();
-        }
-        if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === "ArrowLeft") handlePrev();
+      if (e.key === " ") {
+        e.preventDefault();
+        togglePlay();
+      }
+      if (e.key === "Escape") onClose();
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -76,11 +84,11 @@ export function SimplePhotosOverlay({
   }, [isOpen, handleNext, handlePrev, togglePlay, onClose]);
 
   const handleMouseMove = () => {
-      setShowControls(true);
-      if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
-      hideControlsTimer.current = setTimeout(() => {
-          if (isPlaying) setShowControls(false); 
-      }, 3000);
+    setShowControls(true);
+    if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
+    hideControlsTimer.current = setTimeout(() => {
+      if (isPlaying) setShowControls(false);
+    }, 3000);
   };
 
   if (!isOpen) return null;
@@ -116,67 +124,67 @@ export function SimplePhotosOverlay({
       {/* Main Image */}
       {currentPhoto && (
         <>
-            <div className="absolute inset-0 flex items-center justify-center bg-black transition-opacity duration-500">
-                {/* Background Blur Effect */}
-                <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl scale-110"
-                    style={{ backgroundImage: `url(${currentPhoto.image_url})` }}
-                />
-                
-                <img
-                    key={currentPhoto.id}
-                    src={currentPhoto.image_url}
-                    alt={currentPhoto.RegistrationHistory.registration}
-                    className="relative max-h-screen max-w-full object-contain shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-700"
-                />
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center bg-black transition-opacity duration-500">
+            {/* Background Blur Effect */}
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl scale-110"
+              style={{ backgroundImage: `url(${currentPhoto.image_url})` }}
+            />
 
-            {/* Top Bar (Close) */}
-            <div className={cn(
-                "absolute top-0 left-0 right-0 p-6 flex justify-end z-30 transition-opacity duration-300 bg-gradient-to-b from-black/60 to-transparent",
-                showControls ? "opacity-100" : "opacity-0"
-            )}>
-                <button
-                    onClick={onClose}
-                    className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all"
-                >
-                    <X size={32} />
-                </button>
-            </div>
+            <img
+              key={currentPhoto.id}
+              src={currentPhoto.image_url}
+              alt={currentPhoto.RegistrationHistory.registration}
+              className="relative max-h-screen max-w-full object-contain shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-700"
+            />
+          </div>
 
-            {/* Bottom Controls & Info */}
-            <div className={cn(
-                "absolute bottom-0 left-0 right-0 p-8 z-30 transition-all duration-500 bg-gradient-to-t from-black/90 via-black/50 to-transparent",
-                "translate-y-0 opacity-100" 
-            )}>
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-end md:items-center justify-between gap-6">
-                    {/* Info Section */}
-                    <div className="flex-1 text-left space-y-2">
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-3xl font-bold text-white tracking-tight">
-                                {clientName(currentPhoto)}
-                            </h2>
-                            <span className="px-2 py-0.5 rounded text-xs font-mono bg-white/20 text-white/90 border border-white/10">
-                                {currentPhoto.RegistrationHistory.registration}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-lg">
-                           <span className="font-bold text-white/90">{getAircraftName(currentPhoto, false)}</span>
-                           <span className="text-white/40">•</span>
-                           <span className="text-white/70">{getAirportName(currentPhoto.Airport)}</span>
-                        </div>
-                    </div>
+          {/* Top Bar (Close) */}
+          <div className={cn(
+            "absolute top-0 left-0 right-0 p-6 flex justify-end z-30 transition-opacity duration-300 bg-gradient-to-b from-black/60 to-transparent",
+            showControls ? "opacity-100" : "opacity-0"
+          )}>
+            <button
+              onClick={onClose}
+              className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all"
+            >
+              <X size={32} />
+            </button>
+          </div>
 
-                    {/* Right Side: Date */}
-                    <div className="text-right">
-                        <div className="text-white/60 font-light text-lg">
-                            {new Date(currentPhoto.taken_at).toLocaleDateString(undefined, { 
-                                year: 'numeric', month: 'long', day: 'numeric' 
-                            })}
-                        </div>
-                    </div>
+          {/* Bottom Controls & Info */}
+          <div className={cn(
+            "absolute bottom-0 left-0 right-0 p-8 z-30 transition-all duration-500 bg-gradient-to-t from-black/90 via-black/50 to-transparent",
+            "translate-y-0 opacity-100"
+          )}>
+            <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-end md:items-center justify-between gap-6">
+              {/* Info Section */}
+              <div className="flex-1 text-left space-y-2">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-3xl font-bold text-white tracking-tight">
+                    {clientName(currentPhoto)}
+                  </h2>
+                  <span className="px-2 py-0.5 rounded text-xs font-mono bg-white/20 text-white/90 border border-white/10">
+                    {currentPhoto.RegistrationHistory.registration}
+                  </span>
                 </div>
+                <div className="flex items-center gap-2 text-lg">
+                  <span className="font-bold text-white/90">{getAircraftName(currentPhoto, false)}</span>
+                  <span className="text-white/40">•</span>
+                  <span className="text-white/70">{getAirportName(currentPhoto.Airport)}</span>
+                </div>
+              </div>
+
+              {/* Right Side: Date */}
+              <div className="text-right">
+                <div className="text-white/60 font-light text-lg">
+                  {new Date(currentPhoto.taken_at).toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                  })}
+                </div>
+              </div>
             </div>
+          </div>
         </>
       )}
     </div>
@@ -185,6 +193,6 @@ export function SimplePhotosOverlay({
 
 // Helper to reliably get airline name or fallback
 function clientName(photo: any) {
-    if (photo.RegistrationHistory.airline) return photo.RegistrationHistory.airline;
-    return "Private / Unknown";
+  if (photo.RegistrationHistory.airline) return photo.RegistrationHistory.airline;
+  return "Private / Unknown";
 }

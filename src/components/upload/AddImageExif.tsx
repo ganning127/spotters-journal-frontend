@@ -78,6 +78,14 @@ export const AddImageExif = ({
     }
   };
 
+  useEffect(() => {
+    if (formData.taken_at && formData.shutter_speed && formData.aperture && formData.iso && formData.focal_length && formData.camera_model) {
+      setAllFieldsExtracted(true);
+    } else {
+      setAllFieldsExtracted(false);
+    }
+  }, [formData]);
+
   const formatShutterSpeed = (exposureTime: number) => {
     if (!exposureTime) return "";
     if (exposureTime >= 1) return exposureTime.toString();
