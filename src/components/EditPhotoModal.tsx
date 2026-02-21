@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { AddRegistration } from "@/components/upload/AddRegistration";
 import { AddImageExif } from "@/components/upload/AddImageExif";
 import { AirportSelector } from "@/components/upload/AirportSelector";
-import { NewAirportInputs } from "@/components/upload/NewAirportInputs";
 import type { Photo, UploadPhotoRequest } from "@/types";
 import api from "@/api/axios";
 import { toast } from "sonner";
