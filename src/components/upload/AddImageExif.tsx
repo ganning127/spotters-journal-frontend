@@ -11,10 +11,12 @@ export const AddImageExif = ({
   formData,
   setFormData,
   file,
+  onAutoAdvance,
 }: {
   formData: UploadPhotoRequest;
   setFormData: React.Dispatch<React.SetStateAction<UploadPhotoRequest>>;
   file: File | null;
+  onAutoAdvance?: () => void;
 }) => {
   const [extracting, setExtracting] = useState(false);
   const [allFieldsExtracted, setAllFieldsExtracted] = useState(false);
@@ -70,6 +72,9 @@ export const AddImageExif = ({
 
       if (Object.keys(updates).length == 6) {
         setAllFieldsExtracted(true);
+        if (onAutoAdvance) {
+          onAutoAdvance();
+        }
       }
     } catch (err) {
       console.error("Failed to extract EXIF.", err);

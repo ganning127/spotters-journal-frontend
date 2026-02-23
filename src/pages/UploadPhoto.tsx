@@ -112,7 +112,7 @@ export default function UploadPhoto() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
-        e.code === "ArrowRight" &&
+        (e.code === "Enter") &&
         !(e.target instanceof HTMLInputElement) &&
         !(e.target instanceof HTMLTextAreaElement) &&
         !(e.target instanceof HTMLButtonElement)
@@ -120,6 +120,8 @@ export default function UploadPhoto() {
         e.preventDefault();
         if (step < 5) {
           nextStep();
+        } else if (step === 5 && !loading) {
+          handleSubmit();
         }
       }
 
@@ -137,7 +139,7 @@ export default function UploadPhoto() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [step, selectedFile, formData.registration, formData.airport_code, formData.taken_at]);
+  }, [step, selectedFile, formData.registration, formData.airport_code, formData.taken_at, loading]);
 
   const handleSubmit = async () => {
     if (!selectedFile) {
@@ -281,7 +283,7 @@ export default function UploadPhoto() {
             </div>
 
             <Section className="border-none p-0">
-              <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} />
+              <AddImageExif formData={formData} setFormData={setFormData} file={selectedFile} onAutoAdvance={() => setStep(3)} />
             </Section>
           </div>
         )}
