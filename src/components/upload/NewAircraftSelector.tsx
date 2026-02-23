@@ -53,16 +53,20 @@ export const NewAircraftSelector = ({
         );
         const data = res.data;
 
-        if (data.found) {
-          setFormData({
-            ...formData,
+        if (data.aircraft_type_id) {
+          setFormData((prev) => ({
+            ...prev,
             aircraft_type_id: data.aircraft_type_id,
-            airline_code: data.airline_code,
-          });
+          }));
           // even though found, might still not have airline_code
         }
 
-        if (!data.airline_code) {
+        if (data.airline_code) {
+          setFormData((prev) => ({
+            ...prev,
+            airline_code: data.airline_code,
+          }));
+        } else {
           const matchedAirline = airlines.find((airline) => {
             if (airline.reg_prefix) {
               let found = airline.reg_prefix.find((prefix) =>
@@ -80,11 +84,13 @@ export const NewAircraftSelector = ({
           });
 
           if (matchedAirline) {
-            setFormData({
-              ...formData,
+            setFormData((prev) => ({
+              ...prev,
               airline_code: matchedAirline.code,
-            });
+            }));
           }
+
+
         }
       } catch (error) {
         console.error("Pre-population failed", error);
