@@ -242,31 +242,40 @@ export const AddRegistration = ({
     <>
       <FieldSet>
         <Field>Registration</Field>
-        <Input
-          type="text"
-          placeholder="N374FR"
-          required
-          value={formData.registration}
-          onBlur={searchRegistrations}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              searchRegistrations();
-            }
-          }}
-          disabled={loading}
-          onChange={(e) => {
-            setFormData({
-              ...formData,
-              registration: e.target.value.toUpperCase(),
-            });
-            setSuggestions(null);
-            setIsNewAircraft(false);
-            if (confirmedAircraft) {
-              setConfirmedAircraft(null);
-              setFormData(prev => ({ ...prev, uuid_rh: "" })); // Clear UUID if user changes registration text after determining it
-            }
-          }}
-        />
+        <div className="flex w-full items-center space-x-2">
+          <Input
+            type="text"
+            placeholder="N374FR"
+            required
+            value={formData.registration}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                searchRegistrations();
+              }
+            }}
+            disabled={loading}
+            onChange={(e) => {
+              setFormData({
+                ...formData,
+                registration: e.target.value.toUpperCase(),
+              });
+              setSuggestions(null);
+              setIsNewAircraft(false);
+              if (confirmedAircraft) {
+                setConfirmedAircraft(null);
+                setFormData(prev => ({ ...prev, uuid_rh: "" })); // Clear UUID if user changes registration text after determining it
+              }
+            }}
+          />
+          <Button
+            type="button"
+            onClick={searchRegistrations}
+            disabled={loading || !formData.registration}
+          >
+            {loading ? "Searching..." : "Search"}
+          </Button>
+        </div>
       </FieldSet>
 
       {/* {loading && <Spinner className="mt-2 text-center" />} */}
