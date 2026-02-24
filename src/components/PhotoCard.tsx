@@ -1,18 +1,28 @@
 import { useState } from "react";
 import type { Photo } from "@/types";
 import { getAircraftName, getAirportName } from "@/util/naming";
-import { X, MapPin, Calendar, Edit, Trash } from "lucide-react";
+import { X, MapPin, Calendar, Edit, Trash, Crop } from "lucide-react";
 import { EditPhotoModal } from "./EditPhotoModal";
+import { RotatePhotoModal } from "./RotatePhotoModal";
 import api from "@/api/axios";
 import { toast } from "sonner";
 
 export const PhotoCard = ({ photo, onRefresh }: { photo: Photo; onRefresh?: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isRotateOpen, setIsRotateOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   return (
     <>
+      <RotatePhotoModal
+        photo={photo}
+        isOpen={isRotateOpen}
+        onClose={() => setIsRotateOpen(false)}
+        onUpdate={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
       <EditPhotoModal
         photo={photo}
         isOpen={isEditOpen}
@@ -93,6 +103,16 @@ export const PhotoCard = ({ photo, onRefresh }: { photo: Photo; onRefresh?: () =
             >
               <Edit size={14} />
               <span>Edit Details</span>
+            </div>
+            <div
+              className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 gap-2"
+              onClick={() => {
+                setContextMenu(null);
+                setIsRotateOpen(true);
+              }}
+            >
+              <Crop size={14} />
+              <span>Edit Photo</span>
             </div>
             <div
               className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-destructive hover:text-destructive-foreground text-destructive gap-2"

@@ -23,7 +23,7 @@ interface Suggestion {
   };
 }
 
-const AircraftInfoDisplay = ({ aircraft, currentTakenAt }: { aircraft: Suggestion; currentTakenAt?: string }) => {
+const AircraftInfoDisplay = ({ aircraft, currentTakenAt, isEditMode }: { aircraft: Suggestion; currentTakenAt?: string; isEditMode?: boolean }) => {
   const userPhotos = aircraft.Photo || [];
 
   const isProximate = (photoDate: string) => {
@@ -53,7 +53,7 @@ const AircraftInfoDisplay = ({ aircraft, currentTakenAt }: { aircraft: Suggestio
         </div>
       </div>
 
-      {userPhotos.length > 0 && (
+      {userPhotos.length > 0 && !isEditMode && (
         <div className="grid grid-cols-2 gap-2 mt-0">
           <div className="col-span-2 text-xs text-muted-foreground">
             You have {userPhotos.length} {
@@ -105,9 +105,11 @@ const AircraftInfoDisplay = ({ aircraft, currentTakenAt }: { aircraft: Suggestio
 export const AddRegistration = ({
   formData,
   setFormData,
+  isEditMode = false,
 }: {
   formData: UploadPhotoRequest;
   setFormData: React.Dispatch<React.SetStateAction<UploadPhotoRequest>>;
+  isEditMode?: boolean;
 }) => {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null);
@@ -287,7 +289,7 @@ export const AddRegistration = ({
             <BadgeCheck className="mt-1" />
             <div className="flex-1">
               <AlertDescription>
-                <AircraftInfoDisplay aircraft={confirmedAircraft} currentTakenAt={formData.taken_at} />
+                <AircraftInfoDisplay aircraft={confirmedAircraft} currentTakenAt={formData.taken_at} isEditMode={isEditMode} />
 
                 <div className="mt-2 flex items-center gap-2 text-success font-medium">
                   <button
@@ -311,7 +313,7 @@ export const AddRegistration = ({
           <p className="text-sm text-muted-foreground font-medium">Found {suggestions.length} aircraft for this registration:</p>
           {suggestions.map((aircraft, idx) => (
             <div key={idx} className="border rounded-lg p-3 flex flex-col gap-3 bg-card hover:bg-accent/50 transition-colors">
-              <AircraftInfoDisplay aircraft={aircraft} currentTakenAt={formData.taken_at} />
+              <AircraftInfoDisplay aircraft={aircraft} currentTakenAt={formData.taken_at} isEditMode={isEditMode} />
               <Button size="sm" variant="secondary" className="w-full" onClick={() => handleSelectAircraft(aircraft)}>
                 Select
               </Button>

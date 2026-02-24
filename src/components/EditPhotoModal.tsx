@@ -114,7 +114,7 @@ export function EditPhotoModal({ photo, isOpen, onClose, onUpdate }: EditPhotoMo
             {/* 1. Registration / Aircraft Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Aircraft Details</h3>
-              <AddRegistration formData={formData} setFormData={setFormData} />
+              <AddRegistration formData={formData} setFormData={setFormData} isEditMode={true} />
             </div>
 
             <Separator />
