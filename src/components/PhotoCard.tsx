@@ -13,17 +13,17 @@ export const PhotoCard = ({ photo, onRefresh }: { photo: Photo; onRefresh?: () =
 
   return (
     <>
-      <EditPhotoModal 
-        photo={photo} 
-        isOpen={isEditOpen} 
-        onClose={() => setIsEditOpen(false)} 
+      <EditPhotoModal
+        photo={photo}
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
         onUpdate={() => {
-            if (onRefresh) onRefresh();
+          if (onRefresh) onRefresh();
         }}
       />
 
       {/* 1. The Trigger Card */}
-      <div 
+      <div
         className="group relative rounded-xl overflow-hidden bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 cursor-pointer"
         onClick={() => setIsOpen(true)}
         onContextMenu={(e) => {
@@ -47,19 +47,19 @@ export const PhotoCard = ({ photo, onRefresh }: { photo: Photo; onRefresh?: () =
 
           {/* Bottom Gradient Overlay */}
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-          
+
           <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
             <div className="flex flex-col text-white">
               <h3 className="font-semibold text-sm tracking-tight text-white/90">
                 {getAircraftName(photo, false)}
               </h3>
-              
+
               <div className="flex items-center gap-3 mt-1 text-[11px] text-white/70 font-medium">
                 <div className="flex items-center gap-1">
                   <MapPin size={10} />
                   <span>{photo.Airport.icao_code}</span>
                 </div>
-                 <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1">
                   <Calendar size={10} />
                   <span>{new Date(photo.taken_at).toLocaleDateString()}</span>
                 </div>
@@ -72,88 +72,76 @@ export const PhotoCard = ({ photo, onRefresh }: { photo: Photo; onRefresh?: () =
       {/* Context Menu */}
       {contextMenu && (
         <>
-          <div 
-            className="fixed inset-0 z-[200]" 
-            onClick={() => setContextMenu(null)} 
+          <div
+            className="fixed inset-0 z-[200]"
+            onClick={() => setContextMenu(null)}
             onContextMenu={(e) => {
-               e.preventDefault(); 
-               setContextMenu(null);
+              e.preventDefault();
+              setContextMenu(null);
             }}
           />
           <div
             className="fixed z-[201] w-48 rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none animate-in fade-in zoom-in-95"
             style={{ top: contextMenu.y, left: contextMenu.x }}
           >
-             <div 
+            <div
               className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 gap-2"
               onClick={() => {
                 setContextMenu(null);
                 setIsEditOpen(true);
               }}
-             >
-                <Edit size={14} />
-                <span>Edit Details</span>
-             </div>
-             <div 
+            >
+              <Edit size={14} />
+              <span>Edit Details</span>
+            </div>
+            <div
               className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-destructive hover:text-destructive-foreground text-destructive gap-2"
               onClick={async () => {
                 setContextMenu(null);
                 if (window.confirm("Are you sure you want to delete this photo? This action cannot be undone.")) {
-                    try {
-                        await api.delete(`/photos/${photo.id}`);
-                        toast.success("Photo deleted successfully");
-                        if (onRefresh) onRefresh();
-                    } catch (error) {
-                        console.error("Failed to delete photo", error);
-                        toast.error("Failed to delete photo");
-                    }
+                  try {
+                    await api.delete(`/photos/${photo.id}`);
+                    toast.success("Photo deleted successfully");
+                    if (onRefresh) onRefresh();
+                  } catch (error) {
+                    console.error("Failed to delete photo", error);
+                    toast.error("Failed to delete photo");
+                  }
                 }
               }}
-             >
-                <Trash size={14} />
-                <span>Delete Photo</span>
-             </div>
+            >
+              <Trash size={14} />
+              <span>Delete Photo</span>
+            </div>
           </div>
         </>
       )}
 
       {/* 2. The Fullscreen Overlay */}
       <div
-        className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 md:p-8 transition-all duration-300 ease-in-out ${
-          isOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 md:p-8 transition-all duration-300 ease-in-out ${isOpen
+          ? "opacity-100 pointer-events-auto"
+          : "opacity-0 pointer-events-none"
+          }`}
         onClick={() => setIsOpen(false)}
       >
         {/* Actions Bar */}
         <div className="absolute top-6 right-6 flex items-center gap-2 z-[110]">
-             <button
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setIsEditOpen(true);
-                }}
-                title="Edit Photo Details"
-            >
-                <Edit size={20} />
-            </button>
-            <button
+          <button
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
             onClick={(e) => {
-                e.stopPropagation();
-                setIsOpen(false);
+              e.stopPropagation();
+              setIsOpen(false);
             }}
-            >
+          >
             <X size={24} />
-            </button>
+          </button>
         </div>
-        
+
 
         <div
-          className={`relative max-w-7xl w-full h-full flex flex-col items-center justify-center transition-all duration-500 ${
-            isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
-          }`}
+          className={`relative max-w-7xl w-full h-full flex flex-col items-center justify-center transition-all duration-500 ${isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
+            }`}
           onClick={(e) => e.stopPropagation()}
         >
           <img
@@ -167,10 +155,10 @@ export const PhotoCard = ({ photo, onRefresh }: { photo: Photo; onRefresh?: () =
               {getAircraftName(photo, false)}
             </h2>
             <p className="text-lg text-white/60 font-mono tracking-wide">
-                {photo.RegistrationHistory.registration}
+              {photo.RegistrationHistory.registration}
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-white/40 mt-2">
-               <MapPin size={14} />
+              <MapPin size={14} />
               <span>{getAirportName(photo.Airport)}</span>
             </div>
           </div>

@@ -258,7 +258,7 @@ export const AddRegistration = ({
             onChange={(e) => {
               setFormData({
                 ...formData,
-                registration: e.target.value.toUpperCase(),
+                registration: e.target.value.trim().toUpperCase(),
               });
               setSuggestions(null);
               setIsNewAircraft(false);

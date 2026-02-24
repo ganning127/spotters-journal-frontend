@@ -1,11 +1,13 @@
 import type { UploadPhotoRequest } from "@/types";
 import { Spinner } from "../ui/spinner";
 import { Input } from "../ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import exifr from "exifr";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Check } from "lucide-react";
+
+let lastProcessedFile: File | null = null;
 
 export const AddImageExif = ({
   formData,
@@ -20,9 +22,12 @@ export const AddImageExif = ({
 }) => {
   const [extracting, setExtracting] = useState(false);
   const [allFieldsExtracted, setAllFieldsExtracted] = useState(false);
+  const hasAutoAdvanced = useRef(false);
 
   useEffect(() => {
-    if (file) {
+    if (file && file !== lastProcessedFile) {
+      lastProcessedFile = file;
+      hasAutoAdvanced.current = false;
       extractImageExif(file);
     }
   }, [file]);
@@ -72,7 +77,9 @@ export const AddImageExif = ({
 
       if (Object.keys(updates).length == 6) {
         setAllFieldsExtracted(true);
-        if (onAutoAdvance) {
+        if (onAutoAdvance && !hasAutoAdvanced.current) {
+          hasAutoAdvanced.current = true;
+
           onAutoAdvance();
         }
       }

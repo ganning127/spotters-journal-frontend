@@ -124,18 +124,6 @@ export default function UploadPhoto() {
           handleSubmit();
         }
       }
-
-      if (
-        e.code === "ArrowLeft" &&
-        !(e.target instanceof HTMLInputElement) &&
-        !(e.target instanceof HTMLTextAreaElement) &&
-        !(e.target instanceof HTMLButtonElement)
-      ) {
-        e.preventDefault();
-        if (step > 1) {
-          prevStep();
-        }
-      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
