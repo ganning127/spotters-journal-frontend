@@ -334,7 +334,7 @@ export const AddRegistration = ({
       {isNewAircraft && (
         <>
           <div className='bg-gray-100 p-4 rounded-lg mt-2'>
-            <p className="text-sm text-muted-foreground font-medium">You&apos;re the first to spot this aircraft on our platform! Please enter its information:</p>
+            <p className="text-sm text-muted-foreground font-medium">You&apos;re the first to add this aircraft on our platform! Please enter its information:</p>
             <NewAircraftSelector formData={formData} setFormData={setFormData} />
             {suggestions && (
               <button

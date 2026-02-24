@@ -32,4 +32,11 @@ export function rectifyFormat(s: string) {
   return `${month}-${day}-${year}, ${hour12}:${minute} ${ampm}`;
 }
 
+  // Fix timezone issue when parsing "YYYY-MM-DD"
+  export const parseLocalDate = (dateString: string) => {
+    const [year, month, day] = dateString.split("-").map(Number);
+    // Month is 0-indexed in Date constructor
+    return new Date(year, month - 1, day);
+  };
+
 export const CACHED_SELECTION_KEY = "spotters_cached_selection";

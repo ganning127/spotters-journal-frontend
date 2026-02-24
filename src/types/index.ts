@@ -125,3 +125,17 @@ export interface PhotoCountItem {
   photo_year: number;
   photo_count: number;
 }
+
+export interface AddFlightRequest {
+  date: string;
+  dep_airport: string;
+  arr_airport: string;
+  flight_number: string;
+  notes: string;
+  
+  registration: string;
+  aircraft_type_id?: string;
+  airline_code?: string;
+  uuid_rh?: string;
+  manufactured_date?: string;
+}

@@ -18,6 +18,8 @@ import {
   Camera,
   UploadCloud,
   BarChart3,
+  Plane,
+  PlaneTakeoff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +31,8 @@ export default function Layout() {
   const navItems = [
     { label: "My Collection", href: "/photos", icon: Camera },
     { label: "Upload", href: "/upload", icon: UploadCloud },
+    { label: "My Flights", href: "/flights", icon: Plane },
+    { label: "Add Flight", href: "/flights/add", icon: PlaneTakeoff },
     { label: "Stats", href: "/stats", icon: BarChart3 },
   ];
 
@@ -37,11 +41,11 @@ export default function Layout() {
       {/* Navigation Bar */}
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          
+
           {/* LOGO */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <div className="relative">
-               <div className="absolute -inset-1 rounded-full bg-primary/10 blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
+              <div className="absolute -inset-1 rounded-full bg-primary/10 blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
               <img src="/cropped_logo.png" alt="Logo" className="h-9 w-auto relative transform transition-transform group-hover:scale-105" />
             </div>
             <span className="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
@@ -79,18 +83,18 @@ export default function Layout() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2 rounded-full pl-2 pr-4 hover:bg-muted">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs ring-2 ring-background">
-                            {user.username.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-sm font-medium">{user.username}</span>
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs ring-2 ring-background">
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm font-medium">{user.username}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                            <p className="text-sm font-medium leading-none">{user.username}</p>
-                            <p className="text-xs leading-none text-muted-foreground">User Account</p>
-                        </div>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.username}</p>
+                        <p className="text-xs leading-none text-muted-foreground">User Account</p>
+                      </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout} className="text-red-500 focus:bg-red-50 focus:text-red-600">
@@ -101,7 +105,7 @@ export default function Layout() {
                 </DropdownMenu>
               </>
             ) : (
-               <div className="flex gap-2">
+              <div className="flex gap-2">
                 <Link to="/login">
                   <Button variant="ghost" size="sm">Log In</Button>
                 </Link>
@@ -130,31 +134,31 @@ export default function Layout() {
           <div className="md:hidden border-t bg-background px-4 py-4 space-y-4 shadow-lg animate-in slide-in-from-top-2">
             {user ? (
               <>
-                 <div className="space-y-1">
-                    {navItems.map((item) => (
-                         <Link key={item.href} to={item.href} onClick={() => setIsOpen(false)}>
-                            <Button variant="ghost" className="w-full justify-start gap-2">
-                                <item.icon className="h-4 w-4" />
-                                {item.label}
-                            </Button>
-                        </Link>
-                    ))}
-                 </div>
-                 <div className="border-t pt-4 mt-2">
-                    <div className="flex items-center gap-3 px-2 mb-3">
-                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                             {user.username.charAt(0).toUpperCase()}
-                         </div>
-                         <div className="flex flex-col">
-                             <span className="text-sm font-medium">{user.username}</span>
-                             <span className="text-xs text-muted-foreground">Logged in</span>
-                         </div>
+                <div className="space-y-1">
+                  {navItems.map((item) => (
+                    <Link key={item.href} to={item.href} onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start gap-2">
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
+                <div className="border-t pt-4 mt-2">
+                  <div className="flex items-center gap-3 px-2 mb-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                      {user.username.charAt(0).toUpperCase()}
                     </div>
-                    <Button onClick={logout} variant="destructive" size="sm" className="w-full ">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </Button>
-                 </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{user.username}</span>
+                      <span className="text-xs text-muted-foreground">Logged in</span>
+                    </div>
+                  </div>
+                  <Button onClick={logout} variant="destructive" size="sm" className="w-full ">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </div>
               </>
             ) : (
               <div className="flex flex-col gap-3">
@@ -173,14 +177,14 @@ export default function Layout() {
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-8 py-8 animate-in fade-in duration-500">
         <Outlet />
       </main>
-      
+
       <footer className="border-t py-6 md:py-8 mt-auto">
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-             <p>© {new Date().getFullYear()} Spotter&apos;s Journal. All rights reserved.</p>
-             <div className="flex gap-4">
-                 <Link to="#" className="hover:text-foreground transition-colors">Privacy</Link>
-                 <Link to="#" className="hover:text-foreground transition-colors">Terms</Link>
-             </div>
+          <p>© {new Date().getFullYear()} Spotter&apos;s Journal. All rights reserved.</p>
+          <div className="flex gap-4">
+            <Link to="#" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link to="#" className="hover:text-foreground transition-colors">Terms</Link>
+          </div>
         </div>
       </footer>
     </div>
