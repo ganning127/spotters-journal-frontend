@@ -6,7 +6,7 @@ import { BadgeCheck, Calendar, MapPin } from "lucide-react";
 import { Field, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
 import { NewAircraftSelector } from "./NewAircraftSelector";
-import { rectifyFormat, cn, CACHED_SELECTION_KEY } from "@/lib/utils";
+import { rectifyFormat, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface Suggestion {
@@ -14,7 +14,7 @@ interface Suggestion {
   uuid_rh: string;
   airline?: string;
   airline_name?: string;
-  Photo: { taken_at: string; image_url: string; airport_code: string }[];
+  Photo: { id: number; taken_at: string; image_url: string; airport_code: string }[];
   SpecificAircraft: {
     icao_type: string;
     manufacturer: string;
@@ -23,7 +23,7 @@ interface Suggestion {
   };
 }
 
-const AircraftInfoDisplay = ({ aircraft, currentTakenAt, isEditMode }: { aircraft: Suggestion; currentTakenAt?: string; isEditMode?: boolean }) => {
+const AircraftInfoDisplay = ({ aircraft, currentTakenAt, isEditMode, editingPhotoId }: { aircraft: Suggestion; currentTakenAt?: string; isEditMode?: boolean; editingPhotoId?: number }) => {
   const userPhotos = aircraft.Photo || [];
 
   const isProximate = (photoDate: string) => {
@@ -62,7 +62,7 @@ const AircraftInfoDisplay = ({ aircraft, currentTakenAt, isEditMode }: { aircraf
           </div>
 
           {userPhotos.map((photo, index) => {
-            const proximate = isProximate(photo.taken_at);
+            const proximate = photo.id !== editingPhotoId && isProximate(photo.taken_at);
             return (
               <div
                 key={index}
@@ -106,10 +106,12 @@ export const AddRegistration = ({
   formData,
   setFormData,
   isEditMode = false,
+  editingPhotoId,
 }: {
   formData: UploadPhotoRequest;
   setFormData: React.Dispatch<React.SetStateAction<UploadPhotoRequest>>;
   isEditMode?: boolean;
+  editingPhotoId?: number;
 }) => {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null);
@@ -135,40 +137,27 @@ export const AddRegistration = ({
     const restoreState = async () => {
       if (!formData.registration) return;
 
-      // 1. Try to restore from LocalStorage (fastest)
-      try {
-        const cachedStr = localStorage.getItem(CACHED_SELECTION_KEY);
-        if (cachedStr) {
-          const cached = JSON.parse(cachedStr);
-          if (cached.registration === formData.registration &&
-            cached.aircraft &&
-            cached.aircraft.uuid_rh === formData.uuid_rh) {
-            setConfirmedAircraft(cached.aircraft);
-            if (cached.suggestions) {
-              setSuggestions(cached.suggestions);
-            }
-            return;
-          }
-        }
-      } catch (e) {
-        console.error("Failed to parse cached selection", e);
-      }
-
-      // 2. Check if it is a "New Aircraft" flow (derived from formData)
-      if (!formData.uuid_rh && formData.aircraft_type_id) {
-        setIsNewAircraft(true);
-        return;
-      }
-
-      // 3. Check if we have uuid_rh (edit mode fetch)
+      // 1. Check if we have uuid_rh (edit mode fetch)
+      console.log("We have formData.uuid_rh: ", formData.uuid_rh);
       if (formData.uuid_rh) {
         try {
           const res = await api.get(`/aircraft/history/${formData.uuid_rh}`);
           setConfirmedAircraft(res.data);
+
+          const registration = res.data.registration;
+          const suggestions = await api.get(`/aircraft/search?q=${registration}`);
+          setSuggestions(suggestions.data.aircraft);
+
           return;
         } catch (e) {
           console.error("Failed to fetch aircraft history", e);
         }
+      }
+
+      // 3. Check if it is a "New Aircraft" flow (derived from formData)
+      if (!formData.uuid_rh && formData.aircraft_type_id) {
+        setIsNewAircraft(true);
+        return;
       }
     };
 
@@ -199,15 +188,6 @@ export const AddRegistration = ({
             airline_code: aircraft.airline,
             uuid_rh: aircraft.uuid_rh, // Set UUID
           }));
-          // Cache the auto-selection
-          localStorage.setItem(
-            CACHED_SELECTION_KEY,
-            JSON.stringify({
-              registration: formData.registration,
-              aircraft: aircraft,
-              suggestions: data.aircraft
-            })
-          );
         } else {
           // Clear any previous selections if multiple found (user must choose)
           setFormData((prev) => ({
@@ -239,16 +219,6 @@ export const AddRegistration = ({
       airline_code: aircraft.airline || "",
       uuid_rh: aircraft.uuid_rh, // Set UUID
     }));
-
-    // Cache the selection
-    localStorage.setItem(
-      CACHED_SELECTION_KEY,
-      JSON.stringify({
-        registration: formData.registration,
-        aircraft: aircraft,
-        suggestions: suggestions
-      })
-    );
   };
 
   return (
@@ -300,7 +270,7 @@ export const AddRegistration = ({
             <BadgeCheck className="mt-1" />
             <div className="flex-1">
               <AlertDescription>
-                <AircraftInfoDisplay aircraft={confirmedAircraft} currentTakenAt={formData.taken_at} isEditMode={isEditMode} />
+                <AircraftInfoDisplay aircraft={confirmedAircraft} currentTakenAt={formData.taken_at} isEditMode={isEditMode} editingPhotoId={editingPhotoId} />
 
                 <div className="mt-2 flex items-center gap-2 text-success font-medium">
                   <button
@@ -324,7 +294,7 @@ export const AddRegistration = ({
           <p className="text-sm text-muted-foreground font-medium">Found {suggestions.length} aircraft for this registration:</p>
           {suggestions.map((aircraft, idx) => (
             <div key={idx} className="border rounded-lg p-3 flex flex-col gap-3 bg-card hover:bg-accent/50 transition-colors">
-              <AircraftInfoDisplay aircraft={aircraft} currentTakenAt={formData.taken_at} isEditMode={isEditMode} />
+              <AircraftInfoDisplay aircraft={aircraft} currentTakenAt={formData.taken_at} isEditMode={isEditMode} editingPhotoId={editingPhotoId} />
               <Button size="sm" variant="secondary" className="w-full" onClick={() => handleSelectAircraft(aircraft)}>
                 Select
               </Button>

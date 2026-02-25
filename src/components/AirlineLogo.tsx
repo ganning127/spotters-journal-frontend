@@ -21,7 +21,7 @@ export function AirlineLogo({ domain, fallbackText, className, textClassName }: 
                 src={`https://logos-api.apistemic.com/domain:${domain}`}
                 alt={fallbackText || "Airline Logo"}
                 className={cn(
-                    "rounded-full object-contain border bg-white shrink-0 p-1",
+                    "rounded-full object-contain border bg-white shrink-0 p-0.5",
                     dimensionClasses,
                     className
                 )}

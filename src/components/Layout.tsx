@@ -10,7 +10,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import {
   Menu,
   X,
@@ -28,17 +28,17 @@ export default function Layout() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
+  // Added 'category' to group items for logical separation
   const navItems = [
-    { label: "My Collection", href: "/photos", icon: Camera },
-    { label: "Upload", href: "/upload", icon: UploadCloud },
-    { label: "My Flights", href: "/flights", icon: Plane },
-    { label: "Add Flight", href: "/flights/add", icon: PlaneTakeoff },
-    { label: "Stats", href: "/stats", icon: BarChart3 },
+    { label: "My Photos", href: "/photos", icon: Camera, category: "photography" },
+    { label: "Upload Photo", href: "/upload", icon: UploadCloud, category: "photography" },
+    { label: "Photo Stats", href: "/stats", icon: BarChart3, category: "photography" },
+    { label: "My Flights", href: "/flights", icon: Plane, category: "aviation" },
+    { label: "Add Flight", href: "/flights/add", icon: PlaneTakeoff, category: "aviation" },
   ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans">
-      {/* Navigation Bar */}
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
 
@@ -58,23 +58,30 @@ export default function Layout() {
             {user ? (
               <>
                 <div className="flex items-center gap-1 mr-4">
-                  {navItems.map((item) => {
+                  {navItems.map((item, index) => {
                     const isActive = location.pathname === item.href;
+                    const showSeparator = index > 0 && navItems[index - 1].category !== item.category;
+
                     return (
-                      <Link key={item.href} to={item.href}>
-                        <Button
-                          variant={isActive ? "secondary" : "ghost"}
-                          size="sm"
-                          className={cn(
-                            "gap-2 text-muted-foreground hover:text-foreground transition-colors",
-                            isActive && "text-foreground font-medium"
-                          )}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {item.label}
-                        </Button>
-                      </Link>
-                    )
+                      <Fragment key={item.href}>
+                        {showSeparator && (
+                          <div className="h-4 w-px bg-border mx-2" aria-hidden="true" />
+                        )}
+                        <Link to={item.href}>
+                          <button
+                            className={cn(
+                              "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-9 px-3 gap-2",
+                              isActive
+                                ? "bg-secondary text-foreground font-medium"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            )}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {item.label}
+                          </button>
+                        </Link>
+                      </Fragment>
+                    );
                   })}
                 </div>
 
@@ -135,14 +142,20 @@ export default function Layout() {
             {user ? (
               <>
                 <div className="space-y-1">
-                  {navItems.map((item) => (
-                    <Link key={item.href} to={item.href} onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start gap-2">
-                        <item.icon className="h-4 w-4" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
+                  {navItems.map((item, index) => {
+                    const showSeparator = index > 0 && navItems[index - 1].category !== item.category;
+                    return (
+                      <Fragment key={item.href}>
+                        {showSeparator && <div className="my-2 border-t border-border/50" />}
+                        <Link to={item.href} onClick={() => setIsOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start gap-2">
+                            <item.icon className="h-4 w-4" />
+                            {item.label}
+                          </Button>
+                        </Link>
+                      </Fragment>
+                    );
+                  })}
                 </div>
                 <div className="border-t pt-4 mt-2">
                   <div className="flex items-center gap-3 px-2 mb-3">
