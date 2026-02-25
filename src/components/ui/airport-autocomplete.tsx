@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 
 interface AirportAutocompleteProps {
   value: string;
-  onChange: (val: string) => void;
+  onChange: (val: string, airport?: BasicAirportInfo) => void;
   placeholder?: string;
   required?: boolean;
   name?: string;
@@ -117,7 +117,7 @@ export function AirportAutocomplete({
                   key={airport.icao_code}
                   className="px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer flex justify-between items-center"
                   onClick={() => {
-                    onChange(airport.icao_code);
+                    onChange(airport.icao_code, airport);
                     setQuery(airport.icao_code);
                     setOpen(false);
                   }}

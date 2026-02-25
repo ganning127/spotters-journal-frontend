@@ -1,18 +1,46 @@
 import { Plane } from "lucide-react";
 import { AirportInfo } from "./AirportInfo";
+import tzlookup from 'tz-lookup';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface FlightInfoCardsProps {
     flight: {
         dep_airport: string;
-        dep?: { name: string };
+        dep?: { name: string; latitude?: number; longitude?: number };
         arr_airport: string;
-        arr?: { name: string };
+        arr?: { name: string; latitude?: number; longitude?: number };
         distance: number;
         notes?: string;
+        dep_ts?: string;
+        arr_ts?: string;
     };
 }
 
 export function FlightInfoCards({ flight }: FlightInfoCardsProps) {
+    let depTimeStr = "";
+    if (flight.dep_ts && flight.dep?.latitude && flight.dep?.longitude) {
+        try {
+            const tz = tzlookup(flight.dep.latitude, flight.dep.longitude);
+            depTimeStr = formatInTimeZone(flight.dep_ts, tz, 'h:mm a');
+        } catch {
+            depTimeStr = new Date(flight.dep_ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+    } else if (flight.dep_ts) {
+        depTimeStr = new Date(flight.dep_ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    let arrTimeStr = "";
+    if (flight.arr_ts && flight.arr?.latitude && flight.arr?.longitude) {
+        try {
+            const tz = tzlookup(flight.arr.latitude, flight.arr.longitude);
+            arrTimeStr = formatInTimeZone(flight.arr_ts, tz, 'h:mm a');
+        } catch {
+            arrTimeStr = new Date(flight.arr_ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+    } else if (flight.arr_ts) {
+        arrTimeStr = new Date(flight.arr_ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
     return (
         <div className="bg-card border rounded-2xl p-8 flex flex-col h-fit justify-between shadow-sm">
             <div className="relative space-y-10">
@@ -23,6 +51,11 @@ export function FlightInfoCards({ flight }: FlightInfoCardsProps) {
                         code={flight.dep_airport}
                         name={flight.dep?.name || ""}
                     />
+                    {flight.dep_ts && (
+                        <p className="mt-2 ml-[72px] text-sm font-semibold text-muted-foreground tracking-wide">
+                            {depTimeStr}
+                        </p>
+                    )}
                 </div>
 
                 <div className="relative z-10 flex items-center" style={{ paddingLeft: '11px' }}>
@@ -40,6 +73,11 @@ export function FlightInfoCards({ flight }: FlightInfoCardsProps) {
                         code={flight.arr_airport}
                         name={flight.arr?.name || ""}
                     />
+                    {flight.arr_ts && (
+                        <p className="mt-2 ml-[72px] text-sm font-semibold text-muted-foreground tracking-wide">
+                            {arrTimeStr}
+                        </p>
+                    )}
                 </div>
             </div>
 

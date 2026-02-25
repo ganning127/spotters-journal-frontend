@@ -12,12 +12,21 @@ import { AddRegistration } from "@/components/upload/AddRegistration";
 import { AirportAutocomplete } from "@/components/ui/airport-autocomplete";
 import type { AddFlightRequest } from "@/types";
 import { Textarea } from "@/components/ui/textarea";
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
+import tzlookup from 'tz-lookup';
 
 export default function AddFlight() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+  const [depZone, setDepZone] = useState<string | null>(null);
+  const [arrZone, setArrZone] = useState<string | null>(null);
+  const [depLocalTime, setDepLocalTime] = useState<string>("");
+  const [arrLocalTime, setArrLocalTime] = useState<string>("");
+  const [prevDepAirport, setPrevDepAirport] = useState<string>("");
+  const [prevArrAirport, setPrevArrAirport] = useState<string>("");
 
   const [formData, setFormData] = useState<AddFlightRequest>({
     registration: "",
@@ -29,6 +38,8 @@ export default function AddFlight() {
     airline_code: "",
     aircraft_type_id: "",
     uuid_rh: "",
+    dep_ts: "",
+    arr_ts: "",
   });
 
   useEffect(() => {
@@ -37,6 +48,21 @@ export default function AddFlight() {
         try {
           const res = await api.get(`/flights/${id}`);
           const flight = res.data;
+
+          let dZoneStr = null;
+          let aZoneStr = null;
+          if (flight.dep_airport) {
+            setPrevDepAirport(flight.dep_airport);
+            try { const r = await api.get(`/airports/${flight.dep_airport}`); if (r.data.latitude && r.data.longitude) { dZoneStr = tzlookup(r.data.latitude, r.data.longitude); setDepZone(dZoneStr); } } catch { }
+          }
+          if (flight.arr_airport) {
+            setPrevArrAirport(flight.arr_airport);
+            try { const r = await api.get(`/airports/${flight.arr_airport}`); if (r.data.latitude && r.data.longitude) { aZoneStr = tzlookup(r.data.latitude, r.data.longitude); setArrZone(aZoneStr); } } catch { }
+          }
+
+          if (flight.dep_ts && dZoneStr) setDepLocalTime(formatInTimeZone(flight.dep_ts, dZoneStr, "yyyy-MM-dd'T'HH:mm"));
+          if (flight.arr_ts && aZoneStr) setArrLocalTime(formatInTimeZone(flight.arr_ts, aZoneStr, "yyyy-MM-dd'T'HH:mm"));
+
           setFormData({
             registration: flight.RegistrationHistory?.registration || "",
             date: flight.date,
@@ -47,6 +73,8 @@ export default function AddFlight() {
             airline_code: flight.airline_code || "",
             aircraft_type_id: flight.RegistrationHistory?.SpecificAircraft?.icao_type || "",
             uuid_rh: flight.uuid_rh || "",
+            dep_ts: flight.dep_ts || "",
+            arr_ts: flight.arr_ts || "",
           });
         } catch (err) {
           console.error("Failed to fetch flight", err);
@@ -57,17 +85,35 @@ export default function AddFlight() {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (formData.dep_airport && formData.dep_airport !== prevDepAirport) {
+      if (prevDepAirport && depLocalTime) {
+        toast.warning(`Departure changed to ${formData.dep_airport}. Please verify your departure time for the new timezone.`);
+      }
+      setPrevDepAirport(formData.dep_airport);
+    }
+  }, [formData.dep_airport, prevDepAirport, depLocalTime]);
+
+  useEffect(() => {
+    if (formData.arr_airport && formData.arr_airport !== prevArrAirport) {
+      if (prevArrAirport && arrLocalTime) {
+        toast.warning(`Arrival changed to ${formData.arr_airport}. Please verify your arrival time for the new timezone.`);
+      }
+      setPrevArrAirport(formData.arr_airport);
+    }
+  }, [formData.arr_airport, prevArrAirport, arrLocalTime]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const checkAirportValidity = async (icao: string) => {
+  const checkAirportInfo = async (icao: string) => {
     try {
       const res = await api.get(`/airports?q=${icao}`);
-      return res.data && res.data.length > 0 && res.data.some((a: any) => a.icao_code === icao);
+      return res.data?.find((a: any) => a.icao_code === icao);
     } catch {
-      return false;
+      return null;
     }
   };
 
@@ -85,28 +131,35 @@ export default function AddFlight() {
         if (data && data.response) {
           const flightData = Array.isArray(data.response) ? data.response[0] : data.response;
           if (flightData) {
-            let depValid = true;
-            let arrValid = true;
+            let depInfo = null;
+            let arrInfo = null;
 
             if (flightData.dep_icao) {
-              depValid = await checkAirportValidity(flightData.dep_icao);
+              depInfo = await checkAirportInfo(flightData.dep_icao);
             }
             if (flightData.arr_icao) {
-              arrValid = await checkAirportValidity(flightData.arr_icao);
+              arrInfo = await checkAirportInfo(flightData.arr_icao);
             }
 
-            if ((flightData.dep_icao && !depValid) || (flightData.arr_icao && !arrValid)) {
+            if ((flightData.dep_icao && !depInfo) || (flightData.arr_icao && !arrInfo)) {
               toast.error(`Autocompleted airport(s) not found in our database. Please contact support.`);
             }
 
             setFormData(prev => {
               const updates: Partial<AddFlightRequest> = {};
-              if (flightData.dep_icao && depValid && !prev.dep_airport) updates.dep_airport = flightData.dep_icao;
-              if (flightData.arr_icao && arrValid && !prev.arr_airport) updates.arr_airport = flightData.arr_icao;
+              if (flightData.dep_icao && depInfo && !prev.dep_airport) updates.dep_airport = flightData.dep_icao;
+              if (flightData.arr_icao && arrInfo && !prev.arr_airport) updates.arr_airport = flightData.arr_icao;
               return { ...prev, ...updates };
             });
 
-            if ((flightData.dep_icao && depValid) && (flightData.arr_icao && arrValid)) {
+            if (depInfo?.latitude && depInfo?.longitude) {
+              setDepZone(tzlookup(depInfo.latitude, depInfo.longitude));
+            }
+            if (arrInfo?.latitude && arrInfo?.longitude) {
+              setArrZone(tzlookup(arrInfo.latitude, arrInfo.longitude));
+            }
+
+            if ((flightData.dep_icao && depInfo) && (flightData.arr_icao && arrInfo)) {
               toast.success("Airports auto-filled from flight number!");
             }
           }
@@ -122,12 +175,6 @@ export default function AddFlight() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const todayDateStr = new Date().toISOString().split('T')[0];
-    if (!id && formData.date === todayDateStr) {
-      const confirmed = window.confirm("The flight date is currently set to today. Are you sure you want to log this flight with today's date?");
-      if (!confirmed) return;
-    }
-
     // Extract airline code from flight number if possible (fallback)
     let airlineCodeToUse = formData.airline_code;
     if (!airlineCodeToUse && formData.flight_number) {
@@ -137,15 +184,36 @@ export default function AddFlight() {
       }
     }
 
-    if (!formData.dep_airport || !formData.arr_airport || !airlineCodeToUse || !formData.flight_number || !formData.registration) {
-      toast.error("Please fill in all required fields (ensure an aircraft/airline is selected for the flight).");
+    if (!formData.dep_airport || !formData.arr_airport || !airlineCodeToUse || !formData.flight_number || !formData.registration || !depLocalTime || !arrLocalTime) {
+      toast.error("Please fill in all required fields (ensure an aircraft/airline and times are selected for the flight).");
       return;
     }
 
     setLoading(true);
+
+    let finalDepTs = formData.dep_ts;
+    let finalArrTs = formData.arr_ts;
+
+    try {
+      if (depLocalTime && depZone) {
+        finalDepTs = fromZonedTime(depLocalTime, depZone).toISOString();
+      }
+      if (arrLocalTime && arrZone) {
+        finalArrTs = fromZonedTime(arrLocalTime, arrZone).toISOString();
+      }
+    } catch (e) {
+      toast.error("Invalid time entered");
+      setLoading(false);
+      return;
+    }
+
+    const localDateStr = depLocalTime ? depLocalTime.split('T')[0] : formData.date;
     try {
       const payload = {
         ...formData,
+        date: localDateStr,
+        dep_ts: finalDepTs,
+        arr_ts: finalArrTs,
         airline_code: airlineCodeToUse,
         dep_airport: formData.dep_airport.toUpperCase(),
         arr_airport: formData.arr_airport.toUpperCase(),
@@ -200,7 +268,7 @@ export default function AddFlight() {
 
         {/* 2. Flight Number & Date */}
         {isAircraftSelected && (
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 fade-in duration-500'>
+          <div className='animate-in slide-in-from-top-4 fade-in duration-500'>
             <FieldSet className="flex-1">
               <Field>
                 <span className="flex items-center gap-2">
@@ -224,22 +292,10 @@ export default function AddFlight() {
                 className="uppercase placeholder:normal-case w-full"
               />
             </FieldSet>
-
-            <FieldSet className="flex-1">
-              <Field>Date</Field>
-              <Input
-                required
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FieldSet>
           </div>
         )}
 
-        {/* 4 & 5. Departure & Arrival Airports */}
+        {/* 3 & 4. Departure & Arrival Airports */}
         {isAircraftSelected && hasFlightNumber && !isAutoFilling && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 fade-in duration-500">
             <FieldSet>
@@ -248,7 +304,14 @@ export default function AddFlight() {
                 name="dep_airport"
                 placeholder="KATL"
                 value={formData.dep_airport}
-                onChange={(val) => setFormData(prev => ({ ...prev, dep_airport: val }))}
+                onChange={(val, airport) => {
+                  setFormData(prev => ({ ...prev, dep_airport: val }));
+                  if (airport?.latitude && airport?.longitude) {
+                    setDepZone(tzlookup(airport.latitude, airport.longitude));
+                  } else if (val) {
+                    api.get(`/airports/${val}`).then(r => { if (r.data.latitude && r.data.longitude) setDepZone(tzlookup(r.data.latitude, r.data.longitude)) }).catch(() => setDepZone(null));
+                  }
+                }}
                 required
               />
             </FieldSet>
@@ -258,8 +321,39 @@ export default function AddFlight() {
                 name="arr_airport"
                 placeholder="KJFK"
                 value={formData.arr_airport}
-                onChange={(val) => setFormData(prev => ({ ...prev, arr_airport: val }))}
+                onChange={(val, airport) => {
+                  setFormData(prev => ({ ...prev, arr_airport: val }));
+                  if (airport?.latitude && airport?.longitude) {
+                    setArrZone(tzlookup(airport.latitude, airport.longitude));
+                  } else if (val) {
+                    api.get(`/airports/${val}`).then(r => { if (r.data.latitude && r.data.longitude) setArrZone(tzlookup(r.data.latitude, r.data.longitude)) }).catch(() => setArrZone(null));
+                  }
+                }}
                 required
+              />
+            </FieldSet>
+          </div>
+        )}
+
+        {/* 5. Times */}
+        {isAircraftSelected && hasFlightNumber && hasAirports && !isAutoFilling && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 fade-in duration-500">
+            <FieldSet>
+              <Field>Departure Time {depZone ? `(${depZone})` : ""}</Field>
+              <Input
+                type="datetime-local"
+                required
+                value={depLocalTime}
+                onChange={(e) => setDepLocalTime(e.target.value)}
+              />
+            </FieldSet>
+            <FieldSet>
+              <Field>Arrival Time {arrZone ? `(${arrZone})` : ""}</Field>
+              <Input
+                type="datetime-local"
+                required
+                value={arrLocalTime}
+                onChange={(e) => setArrLocalTime(e.target.value)}
               />
             </FieldSet>
           </div>

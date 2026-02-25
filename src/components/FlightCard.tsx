@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import api from "@/api/axios";
 import { toast } from "sonner";
 import { parseLocalDate } from "@/lib/utils";
+import tzlookup from 'tz-lookup';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export interface Flight {
   uuid_flight: string;
@@ -15,8 +17,10 @@ export interface Flight {
   airline_code: string;
   distance: number;
   notes: string;
-  dep: { icao_code: string; name: string };
-  arr: { icao_code: string; name: string };
+  dep_ts?: string;
+  arr_ts?: string;
+  dep: { icao_code: string; name: string; latitude?: number; longitude?: number };
+  arr: { icao_code: string; name: string; latitude?: number; longitude?: number };
   airline: { code: string; name: string, domain?: string };
   RegistrationHistory: {
     registration: string;
@@ -35,6 +39,30 @@ interface FlightCardProps {
 export const FlightCard = ({ flight, onRefresh }: FlightCardProps) => {
   const navigate = useNavigate();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+
+  let depTimeStr = "";
+  if (flight.dep_ts && flight.dep?.latitude && flight.dep?.longitude) {
+    try {
+      const tz = tzlookup(flight.dep.latitude, flight.dep.longitude);
+      depTimeStr = formatInTimeZone(flight.dep_ts, tz, 'h:mm a');
+    } catch {
+      depTimeStr = new Date(flight.dep_ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  } else if (flight.dep_ts) {
+    depTimeStr = new Date(flight.dep_ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  let arrTimeStr = "";
+  if (flight.arr_ts && flight.arr?.latitude && flight.arr?.longitude) {
+    try {
+      const tz = tzlookup(flight.arr.latitude, flight.arr.longitude);
+      arrTimeStr = formatInTimeZone(flight.arr_ts, tz, 'h:mm a');
+    } catch {
+      arrTimeStr = new Date(flight.arr_ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  } else if (flight.arr_ts) {
+    arrTimeStr = new Date(flight.arr_ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 
   return (
     <>
@@ -71,6 +99,11 @@ export const FlightCard = ({ flight, onRefresh }: FlightCardProps) => {
         <div className="flex items-center justify-between mb-4">
           <div className="text-center">
             <p className="text-2xl font-bold">{flight.dep_airport}</p>
+            {flight.dep_ts && (
+              <p className="text-xs font-semibold text-muted-foreground mt-1 tracking-wide">
+                {depTimeStr}
+              </p>
+            )}
           </div>
           <div className="flex-1 flex flex-col items-center justify-center px-4 relative mt-1">
             <div className="absolute inset-x-4 top-3 border-t border-dashed border-border" />
@@ -85,6 +118,11 @@ export const FlightCard = ({ flight, onRefresh }: FlightCardProps) => {
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">{flight.arr_airport}</p>
+            {flight.arr_ts && (
+              <p className="text-xs font-semibold text-muted-foreground mt-1 tracking-wide">
+                {arrTimeStr}
+              </p>
+            )}
           </div>
         </div>
 

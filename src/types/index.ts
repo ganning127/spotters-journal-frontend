@@ -84,6 +84,8 @@ export interface Airline {
 export interface BasicAirportInfo {
   icao_code: string;
   name: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ManufacturerCountsResponse {
@@ -138,4 +140,6 @@ export interface AddFlightRequest {
   airline_code?: string;
   uuid_rh?: string;
   manufactured_date?: string;
+  dep_ts?: string;
+  arr_ts?: string;
 }
