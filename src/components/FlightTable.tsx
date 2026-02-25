@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { MoreHorizontal, Edit, Trash, ArrowRight } from "lucide-react";
+import { MoreHorizontal, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -64,7 +64,8 @@ export function FlightTable({ flights, onRefresh }: FlightTableProps) {
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                         <TableHead className="w-[120px]">Date</TableHead>
                         <TableHead>Flight</TableHead>
-                        <TableHead>Route</TableHead>
+                        <TableHead>Departure</TableHead>
+                        <TableHead>Arrival</TableHead>
                         <TableHead className="hidden md:table-cell">Aircraft</TableHead>
                         <TableHead className="hidden lg:table-cell">Distance</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
@@ -97,37 +98,36 @@ export function FlightTable({ flights, onRefresh }: FlightTableProps) {
                                         <span className="font-semibold text-sm flex items-center gap-1">
                                             {flight.airline_code} {flight.flight_number}
                                         </span>
-                                        <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                                        <span className="text-xs text-muted-foreground">
                                             {flight.airline?.name || flight.airline_code}
                                         </span>
                                     </div>
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex flex-col">
-                                        <span className="font-bold">{flight.dep_airport}</span>
-                                        <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">
-                                            {flight.dep?.name?.split(' ')[0]}
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-base text-foreground">{flight.dep_airport}</span>
+                                    <span className="text-xs text-muted-foreground" title={flight.dep?.name}>
+                                        {flight.dep?.name.split(" ").slice(0, 2).join(" ") || "Unknown"}
+                                    </span>
+                                    {flight.dep_ts && (
+                                        <span className="text-xs text-primary mt-1">
+                                            {getLocalTimeStr(flight.dep_ts, flight.dep?.latitude, flight.dep?.longitude)}
                                         </span>
-                                        {flight.dep_ts && (
-                                            <span className="text-xs text-muted-foreground whitespace-nowrap font-medium mt-1">
-                                                {getLocalTimeStr(flight.dep_ts, flight.dep?.latitude, flight.dep?.longitude)}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <ArrowRight size={14} className="text-muted-foreground mx-2" />
-                                    <div className="flex flex-col">
-                                        <span className="font-bold">{flight.arr_airport}</span>
-                                        <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">
-                                            {flight.arr?.name?.split(' ')[0]}
+                                    )}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-base text-foreground">{flight.arr_airport}</span>
+                                    <span className="text-xs text-muted-foreground" title={flight.arr?.name}>
+                                        {flight.arr?.name.split(" ").slice(0, 2).join(" ") || "Unknown"}
+                                    </span>
+                                    {flight.arr_ts && (
+                                        <span className="text-xs text-primary mt-1">
+                                            {getLocalTimeStr(flight.arr_ts, flight.arr?.latitude, flight.arr?.longitude)}
                                         </span>
-                                        {flight.arr_ts && (
-                                            <span className="text-xs text-muted-foreground whitespace-nowrap font-medium mt-1">
-                                                {getLocalTimeStr(flight.arr_ts, flight.arr?.latitude, flight.arr?.longitude)}
-                                            </span>
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
