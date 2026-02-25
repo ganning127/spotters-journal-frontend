@@ -159,13 +159,24 @@ export const AddRegistration = ({
         setIsNewAircraft(true);
         return;
       }
+
+      // 3. Check if we have uuid_rh (edit mode fetch)
+      if (formData.uuid_rh) {
+        try {
+          const res = await api.get(`/aircraft/history/${formData.uuid_rh}`);
+          setConfirmedAircraft(res.data);
+          return;
+        } catch (e) {
+          console.error("Failed to fetch aircraft history", e);
+        }
+      }
     };
 
     // Only run if we don't have local state but do have form data (e.g. on mount/back navigation)
-    if (!suggestions && !isNewAircraft && !confirmedAircraft) {
+    if (!suggestions && !isNewAircraft && !confirmedAircraft && formData.registration) {
       restoreState();
     }
-  }, []);
+  }, [formData.registration, formData.uuid_rh]);
 
   const searchRegistrations = async () => {
     if (formData.registration === "") return;
