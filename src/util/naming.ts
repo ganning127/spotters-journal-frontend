@@ -10,6 +10,10 @@ export const getAircraftName = (photo: Photo, short: boolean) => {
     return photo.RegistrationHistory.SpecificAircraft.AircraftType.icao_type;
   }
 
+  return getAircraftNameFromFields(manufacturer, type, variant);
+};
+
+export const getAircraftNameFromFields = (manufacturer: string, type: string, variant: string) => {
   let result = "";
   if (manufacturer) {
     if (manufacturer == "Airbus") {
@@ -26,14 +30,15 @@ export const getAircraftName = (photo: Photo, short: boolean) => {
   }
   if (variant) {
     if (variant == "neo") {
-      result += "N";
+      result += "neo";
     } else {
       result += `-${variant}`;
     }
   }
 
   return result;
-};
+
+}
 
 export const getAirportName = (airport: Airport) => {
   return `${airport.name} (${airport.icao_code})`;

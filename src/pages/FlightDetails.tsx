@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "@/api/axios";
-import { ArrowLeft, Plane, Calendar, Route, Camera } from "lucide-react";
+import { ArrowLeft, Plane, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FlightGlobe } from "@/components/FlightGlobe";
-import { PhotoCard } from "@/components/PhotoCard";
+import { AircraftInfo } from "@/components/AircraftInfo";
+import { FlightInfoCards } from "@/components/FlightInfoCards";
 import type { Photo } from "@/types";
-import { parseLocalDate } from "@/lib/utils";
+import { parseLocalDate, cn } from "@/lib/utils";
 
 export default function FlightDetails() {
   const { id } = useParams();
@@ -62,7 +63,6 @@ export default function FlightDetails() {
   }
 
   const rh = flight.RegistrationHistory || {};
-  const ac = rh.SpecificAircraft?.AircraftType || {};
   // Note: L.latLngBounds is not defined in the provided context.
   // If L is a global variable (e.g., Leaflet), it should be imported or declared.
   // For now, this line is commented out to avoid a reference error.
@@ -94,54 +94,13 @@ export default function FlightDetails() {
                 })}
               </p>
             </div>
-            <div className="text-left sm:text-right bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Registration</p>
-              <p className="text-xl font-mono font-bold text-primary">{rh.registration}</p>
-              <p className="text-sm font-medium">{ac.manufacturer} {ac.type}</p>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Main Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Route Info */}
-        <div className="bg-card border rounded-xl p-6 shadow-sm col-span-1 md:col-span-1 flex flex-col justify-between space-y-6">
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                <span className="font-bold text-blue-600">DEP</span>
-              </div>
-              <div>
-                <p className="font-semibold text-lg">{flight.dep?.name || "Unknown Airport"}</p>
-                <p className="text-muted-foreground font-mono">{flight.dep_airport}</p>
-              </div>
-            </div>
-
-            <div className="pl-5 border-l-2 border-dashed border-border ml-5 py-2">
-              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-2 bg-background px-2 py-1 inline-flex rounded-full border">
-                <Route className="h-3 w-3" />
-                {flight.distance} mi
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                <span className="font-bold text-green-600">ARR</span>
-              </div>
-              <div>
-                <p className="font-semibold text-lg">{flight.arr?.name || "Unknown Airport"}</p>
-                <p className="text-muted-foreground font-mono">{flight.arr_airport}</p>
-              </div>
-            </div>
-          </div>
-
-          {flight.notes && (
-            <div className="pt-4 border-t">
-              <p className="text-sm text-foreground/80 italic">"{flight.notes}"</p>
-            </div>
-          )}
-        </div>
+        <FlightInfoCards flight={flight} />
 
         {/* Map */}
         <div className="bg-card border rounded-xl overflow-hidden shadow-sm col-span-1 md:col-span-2 min-h-[400px] relative">
@@ -154,32 +113,8 @@ export default function FlightDetails() {
         </div>
       </div>
 
-      {/* Associated Photos */}
-      <div className="pt-8">
-        <h2 className="text-2xl font-bold tracking-tight mb-6 flex items-center gap-2">
-          <Camera className="h-6 w-6 text-primary" />
-          Your photos of {rh.registration}
-        </h2>
-
-        {photos.length === 0 ? (
-          <div className="text-center py-12 bg-card border rounded-xl border-dashed">
-            <Camera className="h-12 w-12 mx-auto text-muted-foreground opacity-20 mb-4" />
-            <p className="text-muted-foreground text-lg">You haven't uploaded any photos of this aircraft yet.</p>
-            <Link to={`/upload`}>
-              <Button variant="outline" className="mt-4">Upload Photo</Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {photos.map(photo => (
-              <PhotoCard
-                key={photo.id}
-                photo={photo}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Aircraft Information Section */}
+      <AircraftInfo registrationHistory={rh} photos={photos} />
     </div>
   );
 }

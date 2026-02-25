@@ -34,7 +34,7 @@ export const PhotoCard = ({ photo, onRefresh }: { photo: Photo; onRefresh?: () =
 
       {/* 1. The Trigger Card */}
       <div
-        className="group relative rounded-xl overflow-hidden bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 cursor-pointer"
+        className="group relative rounded-xl overflow-hidden bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
         onClick={() => setIsOpen(true)}
         onContextMenu={(e) => {
           e.preventDefault();
