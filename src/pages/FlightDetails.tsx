@@ -7,7 +7,7 @@ import { FlightGlobe } from "@/components/FlightGlobe";
 import { AircraftInfo } from "@/components/AircraftInfo";
 import { FlightInfoCards } from "@/components/FlightInfoCards";
 import type { Photo } from "@/types";
-import { parseLocalDate, cn } from "@/lib/utils";
+import { parseLocalDate } from "@/lib/utils";
 
 export default function FlightDetails() {
   const { id } = useParams();
