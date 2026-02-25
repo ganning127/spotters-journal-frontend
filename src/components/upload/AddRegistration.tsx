@@ -239,16 +239,16 @@ export const AddRegistration = ({
             }}
             disabled={loading}
             onChange={(e) => {
-              setFormData({
-                ...formData,
+              setFormData((prev) => ({
+                ...prev,
                 registration: e.target.value.trim().toUpperCase(),
-              });
+                aircraft_type_id: "",
+                airline_code: "",
+                uuid_rh: "",
+              }));
               setSuggestions(null);
               setIsNewAircraft(false);
-              if (confirmedAircraft) {
-                setConfirmedAircraft(null);
-                setFormData(prev => ({ ...prev, uuid_rh: "" })); // Clear UUID if user changes registration text after determining it
-              }
+              setConfirmedAircraft(null);
             }}
           />
           <Button

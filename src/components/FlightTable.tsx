@@ -58,7 +58,7 @@ export function FlightTable({ flights, onRefresh }: FlightTableProps) {
     };
 
     return (
-        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <div className="rounded-xl border bg-card overflow-hidden">
             <Table>
                 <TableHeader>
                     <TableRow className="bg-muted/50 hover:bg-muted/50">

@@ -237,6 +237,32 @@ export default function AddFlight() {
     }
   };
 
+  const handleDateChange = (type: "dep" | "arr", newDate: string) => {
+    if (type === "dep") {
+      const time = depLocalTime ? (depLocalTime.split('T')[1] || "") : "";
+      setDepLocalTime(time ? `${newDate}T${time}` : newDate);
+
+      const arrTime = arrLocalTime ? (arrLocalTime.split('T')[1] || "") : "";
+      setArrLocalTime(arrTime ? `${newDate}T${arrTime}` : newDate);
+    } else {
+      const time = arrLocalTime ? (arrLocalTime.split('T')[1] || "") : "";
+      setArrLocalTime(time ? `${newDate}T${time}` : newDate);
+    }
+  };
+
+  const handleTimeChange = (type: "dep" | "arr", newTime: string) => {
+    if (type === "dep") {
+      const date = depLocalTime ? depLocalTime.split('T')[0] : formData.date;
+      setDepLocalTime(`${date}T${newTime}`);
+    } else {
+      const date = arrLocalTime ? arrLocalTime.split('T')[0] : (depLocalTime ? depLocalTime.split('T')[0] : formData.date);
+      setArrLocalTime(`${date}T${newTime}`);
+    }
+  };
+
+  const getDatePart = (datetime: string) => datetime ? datetime.split('T')[0] : "";
+  const getTimePart = (datetime: string) => datetime ? (datetime.split('T')[1] || "") : "";
+
   // We require the aircraft to be fully selected (not just registered) to show the next section
   const isAircraftSelected = Boolean(formData.registration && formData.aircraft_type_id);
   const hasFlightNumber = Boolean(formData.flight_number);
@@ -339,22 +365,48 @@ export default function AddFlight() {
         {isAircraftSelected && hasFlightNumber && hasAirports && !isAutoFilling && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 fade-in duration-500">
             <FieldSet>
-              <Field>Departure Time {depZone ? `(${depZone})` : ""}</Field>
-              <Input
-                type="datetime-local"
-                required
-                value={depLocalTime}
-                onChange={(e) => setDepLocalTime(e.target.value)}
-              />
+              <Field>Departure {depZone ? `(${depZone})` : ""}</Field>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  type="date"
+                  required
+                  value={getDatePart(depLocalTime)}
+                  onChange={(e) => handleDateChange("dep", e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  type="time"
+                  required
+                  value={getTimePart(depLocalTime)}
+                  onChange={(e) => handleTimeChange("dep", e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-[0.8rem] text-muted-foreground">
+                Local time {depZone ? `(${formatInTimeZone(depLocalTime ? new Date(depLocalTime) : new Date(), depZone, 'z')})` : ""}
+              </p>
             </FieldSet>
             <FieldSet>
-              <Field>Arrival Time {arrZone ? `(${arrZone})` : ""}</Field>
-              <Input
-                type="datetime-local"
-                required
-                value={arrLocalTime}
-                onChange={(e) => setArrLocalTime(e.target.value)}
-              />
+              <Field>Arrival {arrZone ? `(${arrZone})` : ""}</Field>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  type="date"
+                  required
+                  value={getDatePart(arrLocalTime)}
+                  onChange={(e) => handleDateChange("arr", e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  type="time"
+                  required
+                  value={getTimePart(arrLocalTime)}
+                  onChange={(e) => handleTimeChange("arr", e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-[0.8rem] text-muted-foreground">
+                Local time {arrZone ? `(${formatInTimeZone(arrLocalTime ? new Date(arrLocalTime) : new Date(), arrZone, 'z')})` : ""}
+              </p>
             </FieldSet>
           </div>
         )}
