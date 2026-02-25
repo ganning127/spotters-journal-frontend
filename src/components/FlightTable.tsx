@@ -1,0 +1,154 @@
+import { useNavigate } from "react-router-dom";
+import { MoreHorizontal, Edit, Trash, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AirlineLogo } from "@/components/AirlineLogo";
+import { parseLocalDate } from "@/lib/utils";
+import { toast } from "sonner";
+import api from "@/api/axios";
+import type { Flight } from "@/components/FlightCard";
+
+interface FlightTableProps {
+    flights: Flight[];
+    onRefresh: () => void;
+}
+
+export function FlightTable({ flights, onRefresh }: FlightTableProps) {
+    const navigate = useNavigate();
+
+    const deleteFlight = async (uuid: string) => {
+        if (window.confirm("Are you sure you want to delete this flight log? This action cannot be undone.")) {
+            try {
+                await api.delete(`/flights/${uuid}`);
+                toast.success("Flight deleted successfully");
+                onRefresh();
+            } catch (error) {
+                console.error("Failed to delete flight", error);
+                toast.error("Failed to delete flight");
+            }
+        }
+    };
+
+    return (
+        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+            <Table>
+                <TableHeader>
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="w-[120px]">Date</TableHead>
+                        <TableHead>Flight</TableHead>
+                        <TableHead>Route</TableHead>
+                        <TableHead className="hidden md:table-cell">Aircraft</TableHead>
+                        <TableHead className="hidden lg:table-cell">Distance</TableHead>
+                        <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {flights.map((flight) => (
+                        <TableRow
+                            key={flight.uuid_flight}
+                            className="cursor-pointer group"
+                            onClick={() => navigate(`/flights/${flight.uuid_flight}`)}
+                        >
+                            <TableCell className="font-medium">
+                                <div className="flex flex-col">
+                                    <span className="text-sm">
+                                        {parseLocalDate(flight.date).toLocaleDateString(undefined, {
+                                            year: 'numeric', month: 'short', day: 'numeric'
+                                        })}
+                                    </span>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                    <AirlineLogo
+                                        domain={flight.airline?.domain}
+                                        fallbackText={flight.airline_code}
+                                        className="h-8 w-8 min-w-[32px]"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="font-semibold text-sm flex items-center gap-1">
+                                            {flight.airline_code} {flight.flight_number}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                                            {flight.airline?.name || flight.airline_code}
+                                        </span>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex flex-col">
+                                        <span className="font-bold">{flight.dep_airport}</span>
+                                        <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">
+                                            {flight.dep?.name?.split(' ')[0]}
+                                        </span>
+                                    </div>
+                                    <ArrowRight size={14} className="text-muted-foreground" />
+                                    <div className="flex flex-col">
+                                        <span className="font-bold">{flight.arr_airport}</span>
+                                        <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">
+                                            {flight.arr?.name?.split(' ')[0]}
+                                        </span>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">
+                                        {flight.RegistrationHistory?.SpecificAircraft?.AircraftType?.manufacturer} {flight.RegistrationHistory?.SpecificAircraft?.AircraftType?.type}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground font-mono">
+                                        {flight.RegistrationHistory?.registration}
+                                    </span>
+                                </div>
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                                {flight.distance > 0 ? (
+                                    <span className="text-sm font-medium">{flight.distance} mi</span>
+                                ) : (
+                                    <span className="text-muted-foreground text-xs">—</span>
+                                )}
+                            </TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Open menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => navigate(`/flights/edit/${flight.uuid_flight}`)}>
+                                            <Edit className="mr-2 h-4 w-4" />
+                                            <span>Edit</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            variant="destructive"
+                                            onClick={() => deleteFlight(flight.uuid_flight)}
+                                        >
+                                            <Trash className="mr-2 h-4 w-4" />
+                                            <span>Delete</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+    );
+}

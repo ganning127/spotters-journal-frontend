@@ -4,8 +4,7 @@ import { Plane, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-
-import { FlightCard } from "@/components/FlightCard";
+import { FlightTable } from "@/components/FlightTable";
 import type { Flight } from "@/components/FlightCard";
 
 export default function MyFlights() {
@@ -69,11 +68,7 @@ export default function MyFlights() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
-          {flights.map((flight) => (
-            <FlightCard key={flight.uuid_flight} flight={flight} onRefresh={fetchFlights} />
-          ))}
-        </div>
+        <FlightTable flights={flights} onRefresh={fetchFlights} />
       )}
 
       <div className="flex justify-center pt-8">
