@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "@/api/axios";
-import { ArrowLeft, Plane, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FlightGlobe } from "@/components/FlightGlobe";
 import { AircraftInfo } from "@/components/AircraftInfo";
 import { FlightInfoCards } from "@/components/FlightInfoCards";
 import type { Photo } from "@/types";
 import { parseLocalDate } from "@/lib/utils";
+import { AirlineLogo } from "@/components/AirlineLogo";
 
 export default function FlightDetails() {
   const { id } = useParams();
@@ -84,7 +85,12 @@ export default function FlightDetails() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                <Plane className="h-8 w-8 text-primary" />
+                <AirlineLogo
+                  domain={flight.airline?.domain}
+                  fallbackText={flight.airline_code}
+                  className="h-12 w-12"
+                  textClassName="text-xl"
+                />
                 {flight.airline?.name || flight.airline_code} {flight.flight_number}
               </h1>
               <p className="text-muted-foreground mt-2 text-lg flex items-center gap-2">
@@ -115,6 +121,12 @@ export default function FlightDetails() {
 
       {/* Aircraft Information Section */}
       <AircraftInfo registrationHistory={rh} photos={photos} />
+
+      <div className="flex justify-center pt-8">
+        <p className="text-[10px] text-muted-foreground">
+          Airline logos provided by <a href="https://logos.apistemic.com/" className="hover:underline" target="_blank" rel="noopener noreferrer">Apistemic</a>
+        </p>
+      </div>
     </div>
   );
 }

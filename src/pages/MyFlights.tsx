@@ -75,6 +75,12 @@ export default function MyFlights() {
           ))}
         </div>
       )}
+
+      <div className="flex justify-center pt-8">
+        <p className="text-[10px] text-muted-foreground">
+          Airline logos provided by <a href="https://logos.apistemic.com/" className="hover:underline" target="_blank" rel="noopener noreferrer">Apistemic</a>
+        </p>
+      </div>
     </div>
   );
 }
