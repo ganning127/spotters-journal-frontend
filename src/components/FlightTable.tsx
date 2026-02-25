@@ -20,11 +20,26 @@ import { parseLocalDate } from "@/lib/utils";
 import { toast } from "sonner";
 import api from "@/api/axios";
 import type { Flight } from "@/components/FlightCard";
+import tzlookup from 'tz-lookup';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface FlightTableProps {
     flights: Flight[];
     onRefresh: () => void;
 }
+
+const getLocalTimeStr = (ts?: string, lat?: number, lon?: number) => {
+    if (!ts) return null;
+    if (lat && lon) {
+        try {
+            const tz = tzlookup(lat, lon);
+            return formatInTimeZone(ts, tz, 'MMM d, h:mm a');
+        } catch {
+            return new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+    }
+    return new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
 
 export function FlightTable({ flights, onRefresh }: FlightTableProps) {
     const navigate = useNavigate();
@@ -95,13 +110,23 @@ export function FlightTable({ flights, onRefresh }: FlightTableProps) {
                                         <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">
                                             {flight.dep?.name?.split(' ')[0]}
                                         </span>
+                                        {flight.dep_ts && (
+                                            <span className="text-xs text-muted-foreground whitespace-nowrap font-medium mt-1">
+                                                {getLocalTimeStr(flight.dep_ts, flight.dep?.latitude, flight.dep?.longitude)}
+                                            </span>
+                                        )}
                                     </div>
-                                    <ArrowRight size={14} className="text-muted-foreground" />
+                                    <ArrowRight size={14} className="text-muted-foreground mx-2" />
                                     <div className="flex flex-col">
                                         <span className="font-bold">{flight.arr_airport}</span>
                                         <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">
                                             {flight.arr?.name?.split(' ')[0]}
                                         </span>
+                                        {flight.arr_ts && (
+                                            <span className="text-xs text-muted-foreground whitespace-nowrap font-medium mt-1">
+                                                {getLocalTimeStr(flight.arr_ts, flight.arr?.latitude, flight.arr?.longitude)}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </TableCell>
