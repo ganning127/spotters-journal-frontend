@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import Globe from "react-globe.gl";
 import { Map as MapIcon } from "lucide-react";
+import { geoInterpolate } from "d3-geo";
 
 interface FlightGlobeProps {
   depLat: number;
@@ -15,18 +16,20 @@ export function FlightGlobe({ depLat, depLng, arrLat, arrLng }: FlightGlobeProps
   const [dimensions, setDimensions] = useState({ width: 0, height: 400 });
 
   // 1. Memoize coordinates to prevent unnecessary re-renders of the Globe
-  const arcData = useMemo(() => [{
-    startLat: depLat,
-    startLng: depLng,
-    endLat: arrLat,
-    endLng: arrLng,
-    color: ['#3b82f6', '#22c55e']
-  }], [depLat, depLng, arrLat, arrLng]);
+  const pathData = useMemo(() => {
+    const interpolate = geoInterpolate([depLng, depLat], [arrLng, arrLat]);
+    const numPoints = 100;
+    const points = Array.from({ length: numPoints }, (_, i) => {
+      const t = i / (numPoints - 1); // current "progress"
+      const [lng, lat] = interpolate(t);
+      return [lat, lng]; // react-globe.gl path expects [lat, lng]
+    });
 
-  const pointsData = useMemo(() => [
-    { lat: depLat, lng: depLng, color: "#3b82f6" },
-    { lat: arrLat, lng: arrLng, color: "#22c55e" }
-  ], [depLat, depLng, arrLat, arrLng]);
+    return [{
+      points,
+      color: ['#3b82f6', '#22c55e']
+    }];
+  }, [depLat, depLng, arrLat, arrLng]);
 
   const hasMapCoords = depLat && depLng && arrLat && arrLng;
 
@@ -75,18 +78,15 @@ export function FlightGlobe({ depLat, depLng, arrLat, arrLng }: FlightGlobeProps
           }
           backgroundColor="rgba(0,0,0,0)"
 
-          // Use Arcs instead of Paths for better stability and "Great Circle" curves
-          arcsData={arcData}
-          arcColor="color"
-          arcDashLength={0.5}
-          arcDashGap={0.01}
-          arcDashAnimateTime={2000}
-          arcStroke={0.5}
-
-          pointsData={pointsData}
-          pointColor="color"
-          pointRadius={0.2}
-          pointAltitude={0}
+          pathsData={pathData}
+          pathPoints="points"
+          pathPointLat={p => p[0]}
+          pathPointLng={p => p[1]}
+          pathColor="color"
+          pathDashLength={0.5}
+          pathDashGap={0.01}
+          pathDashAnimateTime={2000}
+          pathStroke={1.5}
 
           onGlobeReady={() => {
             if (globeRef.current) {
@@ -98,8 +98,6 @@ export function FlightGlobe({ depLat, depLng, arrLat, arrLng }: FlightGlobeProps
 
               const controls = globeRef.current.controls();
               controls.enableZoom = true;
-              // Note: We removed the 'change' event listener that was 
-              // triggering setAltitude to prevent the re-render loop.
             }
           }}
         />
