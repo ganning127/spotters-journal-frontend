@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "@/api/axios";
 import { PlaneTakeoff, Save, ArrowLeft } from "lucide-react";
@@ -28,8 +28,6 @@ export default function AddFlight() {
   const [arrLocalTime, setArrLocalTime] = useState<string>("");
   const [prevDepAirport, setPrevDepAirport] = useState<string>("");
   const [prevArrAirport, setPrevArrAirport] = useState<string>("");
-
-  const [showAirportSelectors, setShowAirportSelectors] = useState<boolean>(false);
 
   const [depCoords, setDepCoords] = useState<{ lat: number, lng: number } | null>(null);
   const [arrCoords, setArrCoords] = useState<{ lat: number, lng: number } | null>(null);
@@ -153,8 +151,8 @@ export default function AddFlight() {
 
             setFormData(prev => {
               const updates: Partial<AddFlightRequest> = {};
-              if (flightData.dep_icao && depInfo && !prev.dep_airport) updates.dep_airport = flightData.dep_icao;
-              if (flightData.arr_icao && arrInfo && !prev.arr_airport) updates.arr_airport = flightData.arr_icao;
+              if (flightData.dep_icao && depInfo) updates.dep_airport = flightData.dep_icao;
+              if (flightData.arr_icao && arrInfo) updates.arr_airport = flightData.arr_icao;
               return { ...prev, ...updates };
             });
 
@@ -176,7 +174,6 @@ export default function AddFlight() {
         console.error("Failed to auto-fill airports:", error);
       } finally {
         setIsAutoFilling(false);
-        setShowAirportSelectors(true);
       }
     }
   };
@@ -216,17 +213,16 @@ export default function AddFlight() {
       return;
     }
 
-    const localDateStr = depLocalTime ? depLocalTime.split('T')[0] : formData.date;
     try {
       const payload = {
         ...formData,
-        date: localDateStr,
         dep_ts: finalDepTs,
         arr_ts: finalArrTs,
         airline_code: airlineCodeToUse,
         dep_airport: formData.dep_airport.toUpperCase(),
         arr_airport: formData.arr_airport.toUpperCase(),
         registration: formData.registration.toUpperCase(),
+        dep_timezone: depZone || undefined,
       };
 
       if (id) {
@@ -275,6 +271,38 @@ export default function AddFlight() {
   const isAircraftSelected = Boolean(formData.registration && formData.aircraft_type_id && formData.airline_code);
   const hasFlightNumber = Boolean(formData.flight_number);
   const hasAirports = Boolean(formData.dep_airport && formData.arr_airport);
+
+  const flightDurationInfo = useMemo(() => {
+    if (!depLocalTime || !arrLocalTime || !depZone || !arrZone) return null;
+
+    const depTimePart = depLocalTime.split('T')[1];
+    const arrTimePart = arrLocalTime.split('T')[1];
+    if (!depTimePart || !arrTimePart || depTimePart.length < 5 || arrTimePart.length < 5) {
+      return null;
+    }
+
+    try {
+      const depDate = fromZonedTime(depLocalTime, depZone);
+      const arrDate = fromZonedTime(arrLocalTime, arrZone);
+
+      const diffMs = arrDate.getTime() - depDate.getTime();
+      if (isNaN(diffMs) || diffMs <= 0) return null; // Invalid duration
+
+      const totalMins = Math.floor(diffMs / (1000 * 60));
+      const hours = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+
+      let str = "";
+      if (hours > 0) str += `${hours} hour${hours > 1 ? 's' : ''}`;
+      if (mins > 0) {
+        if (str) str += ", ";
+        str += `${mins} min${mins !== 1 ? 's' : ''}`;
+      }
+      return str || null;
+    } catch {
+      return null;
+    }
+  }, [depLocalTime, arrLocalTime, depZone, arrZone]);
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -344,7 +372,7 @@ export default function AddFlight() {
         )}
 
         {/* 3 & 4. Departure & Arrival Airports */}
-        {showAirportSelectors && (
+        {isAircraftSelected && hasFlightNumber && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 fade-in duration-500">
             <FieldSet>
               <Field>Departure Airport</Field>
@@ -389,7 +417,7 @@ export default function AddFlight() {
         )}
 
         {/* 4.5. Flight Globe */}
-        {depCoords && arrCoords && (
+        {isAircraftSelected && hasFlightNumber && hasAirports && depCoords && arrCoords && (
           <div className="w-full h-80 md:h-96 rounded-xl overflow-hidden relative border shadow-sm animate-in fade-in zoom-in-95 duration-500">
             <FlightGlobe
               depLat={depCoords.lat}
@@ -448,8 +476,16 @@ export default function AddFlight() {
                 />
               </div>
             </FieldSet>
+
+            {isAircraftSelected && hasFlightNumber && hasAirports && !isAutoFilling && flightDurationInfo && (
+              <div className="w-full col-span-2 text-center text-sm font-medium text-muted-foreground bg-muted/100 py-2 rounded-md animate-in slide-in-from-top-2 fade-in duration-500">
+                {flightDurationInfo} flight time
+              </div>
+            )}
+
           </div>
         )}
+
 
         {/* 6. Notes & Submit */}
         {isAircraftSelected && hasFlightNumber && hasAirports && !isAutoFilling && (
