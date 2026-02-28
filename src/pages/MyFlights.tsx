@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { FlightTable } from "@/components/FlightTable";
 import type { Flight } from "@/components/FlightCard";
+import { MultiFlightGlobe } from "@/components/MultiFlightGlobe";
 
 export default function MyFlights() {
   const [flights, setFlights] = useState<Flight[]>([]);
@@ -27,6 +28,17 @@ export default function MyFlights() {
     fetchFlights();
   }, []);
 
+  const flightCoords = flights
+    .filter(f => typeof f.dep?.latitude === 'number' && typeof f.dep?.longitude === 'number' && typeof f.arr?.latitude === 'number' && typeof f.arr?.longitude === 'number')
+    .map(f => ({
+      depLat: f.dep!.latitude as number,
+      depLng: f.dep!.longitude as number,
+      arrLat: f.arr!.latitude as number,
+      arrLng: f.arr!.longitude as number,
+      depIcao: f.dep_airport,
+      arrIcao: f.arr_airport,
+    }));
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -46,6 +58,12 @@ export default function MyFlights() {
           </Button>
         </Link>
       </div>
+
+      {!loading && flights.length > 0 && (
+        <div className="w-full h-[600px] relative rounded-xl overflow-hidden border bg-background shadow-sm">
+          <MultiFlightGlobe flights={flightCoords} />
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 animate-pulse">
