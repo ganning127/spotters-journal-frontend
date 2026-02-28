@@ -53,16 +53,7 @@ export function AirportAutocomplete({
     const delayDebounceFn = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await api.get<BasicAirportInfo[]>(
-          `/airports?q=${encodeURIComponent(query)}`,
-          {
-            headers: {
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache',
-              'Expires': '0',
-            },
-          }
-        ); setResults(res.data);
+        const res = await api.get<BasicAirportInfo[]>(`/airports?q=${encodeURIComponent(query)}`,); setResults(res.data);
       } catch (err) {
         console.error("Failed to load airports", err);
       } finally {
@@ -81,9 +72,6 @@ export function AirportAutocomplete({
           placeholder={placeholder}
           value={query}
           required={required && !value}
-          onFocus={() => {
-            setOpen(true);
-          }}
           onChange={(e) => {
             setQuery(e.target.value.toUpperCase());
             setOpen(true);
@@ -120,6 +108,7 @@ export function AirportAutocomplete({
                     onChange(airport.icao_code, airport);
                     setQuery(airport.icao_code);
                     setOpen(false);
+                    setResults([]);
                   }}
                 >
                   <span className="font-semibold">{airport.icao_code}</span>

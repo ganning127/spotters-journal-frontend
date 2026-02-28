@@ -1,6 +1,6 @@
 import api from "@/api/axios";
 import type { UploadPhotoRequest } from "@/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BadgeCheck, Calendar, MapPin } from "lucide-react";
 import { Field, FieldSet } from "../ui/field";
@@ -102,7 +102,7 @@ const AircraftInfoDisplay = ({ aircraft, currentTakenAt, isEditMode, editingPhot
   );
 };
 
-export const AddRegistration = ({
+export const AddRegistration = memo(({
   formData,
   setFormData,
   isEditMode = false,
@@ -261,8 +261,6 @@ export const AddRegistration = ({
         </div>
       </FieldSet>
 
-      {/* {loading && <Spinner className="mt-2 text-center" />} */}
-
       {/* Case: Single Confirmed Aircraft (either auto-selected or user-selected) */}
       {confirmedAircraft && !isNewAircraft && (
         <Alert className="w-full mt-2 bg-green-100 border-none flex flex-col gap-2 opacity-75">
@@ -335,4 +333,17 @@ export const AddRegistration = ({
       )}
     </>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.formData.registration === nextProps.formData.registration &&
+    prevProps.formData.aircraft_type_id === nextProps.formData.aircraft_type_id &&
+    prevProps.formData.airline_code === nextProps.formData.airline_code &&
+    prevProps.formData.uuid_rh === nextProps.formData.uuid_rh &&
+    prevProps.formData.taken_at === nextProps.formData.taken_at &&
+    prevProps.isEditMode === nextProps.isEditMode &&
+    prevProps.editingPhotoId === nextProps.editingPhotoId &&
+    prevProps.setFormData === nextProps.setFormData
+  );
+});
+
+AddRegistration.displayName = "AddRegistration";

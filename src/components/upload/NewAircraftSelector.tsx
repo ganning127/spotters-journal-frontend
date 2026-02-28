@@ -94,14 +94,15 @@ export const NewAircraftSelector = ({
     prePopulateData();
   }, [formData.registration, airlines]);
 
+  if (loadingData || loadingPrePopulate) {
+    return <div className="flex gap-1 items-center mt-2">
+      <Spinner />
+      <p>Trying to auto-fill aircraft information...</p>
+    </div>
+  }
+
   return (
     <>
-      {
-        loadingData || loadingPrePopulate && <div className="flex gap-2 items-center">
-          <Spinner />
-        </div>
-      }
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 text-sm">
         <div>
           <FieldSet>
