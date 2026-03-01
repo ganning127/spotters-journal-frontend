@@ -178,3 +178,59 @@ export interface Suggestion {
   UserFlight?: UserFlight[];
 }
 
+export interface FlightOverviewResponse {
+  totalFlights: number;
+  totalDistance: number;
+  totalAirTimeMinutes: number;
+}
+
+export interface TopAirlineResponse {
+  code: string;
+  name: string;
+  domain?: string;
+  brand_color?: string;
+  flight_count: number;
+  total_distance: number;
+}
+
+export interface TopRegistrationResponse {
+  uuid_rh: string;
+  registration: string;
+  icao_type?: string;
+  manufacturer?: string;
+  type?: string;
+  flight_count: number;
+  total_distance: number;
+  cover_photo?: string;
+}
+
+export interface TopRouteResponse {
+  route: string;
+  dep_airport: string;
+  arr_airport: string;
+  dep_name?: string;
+  arr_name?: string;
+  flight_count: number;
+  total_distance: number;
+}
+
+export interface TopAircraftTypeResponse {
+  icao_type: string;
+  manufacturer?: string;
+  type?: string;
+  variant?: string;
+  flight_count: number;
+  total_distance: number;
+}
+
+export interface TopAirportResponse {
+  icao_code: string;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  state?: string;
+  country?: string;
+  total_visits: number;
+  departures: number;
+  arrivals: number;
+}

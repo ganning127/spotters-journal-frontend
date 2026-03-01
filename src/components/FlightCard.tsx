@@ -58,7 +58,6 @@ export const FlightCard = ({ flight, onRefresh }: FlightCardProps) => {
           <div className="flex items-center gap-2 mb-4 pb-4 border-b">
             <AirlineLogo
               domain={flight.airline?.domain}
-              fallbackText={flight.airline_code}
             />
             <div>
               <p className="font-semibold text-foreground text-sm flex items-center gap-1">

@@ -35,6 +35,7 @@ export default function Layout() {
     { label: "Photo Stats", href: "/stats", icon: BarChart3, category: "photography" },
     { label: "My Flights", href: "/flights", icon: Plane, category: "aviation" },
     { label: "Add Flight", href: "/flights/add", icon: PlaneTakeoff, category: "aviation" },
+    { label: "Flight Stats", href: "/flight-stats", icon: BarChart3, category: "aviation" },
   ];
 
   return (

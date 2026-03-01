@@ -91,7 +91,6 @@ export function FlightTable({ flights, onRefresh }: FlightTableProps) {
                 <div className="flex items-center gap-3">
                   <AirlineLogo
                     domain={flight.airline?.domain}
-                    fallbackText={flight.airline_code}
                     className="h-8 w-8 min-w-[32px]"
                   />
                   <div className="flex flex-col">

@@ -87,9 +87,7 @@ export default function FlightDetails() {
               <h1 className="text-4xl font-bold tracking-tight text-foreground flex items-center gap-3">
                 <AirlineLogo
                   domain={flight.airline?.domain}
-                  fallbackText={flight.airline_code}
                   className="h-12 w-12"
-                  textClassName="text-xl"
                 />
                 {flight.airline?.name || flight.airline_code} {flight.flight_number}
               </h1>

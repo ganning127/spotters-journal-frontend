@@ -8,6 +8,7 @@ import UploadPhoto from "./pages/UploadPhoto";
 import MyFlights from "./pages/MyFlights";
 import AddFlight from "./pages/AddFlight";
 import { Stats } from "./pages/Stats";
+import { FlightStats } from "./pages/FlightStats";
 import Home from "./pages/Home";
 import FlightDetails from "./pages/FlightDetails";
 
@@ -29,6 +30,7 @@ function App() {
           <Route path="flights/edit/:id" element={<AddFlight />} />
           <Route path="flights/:id" element={<FlightDetails />} />
           <Route path="stats" element={<Stats />} />
+          <Route path="flight-stats" element={<FlightStats />} />
         </Route>
       </Route>
     </Routes>
