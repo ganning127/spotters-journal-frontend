@@ -43,6 +43,8 @@ export const NewAircraftSelector = ({
 
   useEffect(() => {
     if (airlines.length === 0) return;
+    if (formData.aircraft_type_id && formData.airline_code) return;
+
     const prePopulateData = async () => {
       setLoadingPrePopulate(true);
       const registration = formData.registration.toUpperCase();
