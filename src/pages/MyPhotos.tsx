@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
-import type { AirplaneCountsResponse, Photo } from "../types";
+import type { AirplaneCountsResponse, AirlineCountsResponse, Photo } from "../types";
 import { Button } from "../components/ui/button";
 import { Spinner } from "../components/ui/spinner";
 import { PhotoCard } from "@/components/PhotoCard";
@@ -48,6 +48,9 @@ export default function MyPhotos() {
   const [selectedAircraftType, setSelectedAircraftType] = useState<string[]>(
     [],
   );
+  const [airlinesFilter, setAirlinesFilter] = useState<AirlineCountsResponse[]>([]);
+  const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(0);
 
@@ -72,7 +75,19 @@ export default function MyPhotos() {
       }
     };
 
+    const fetchAirlines = async () => {
+      try {
+        const res = await api.get<AirlineCountsResponse[]>(
+          `/photos/airline-counts?limit=1000`,
+        );
+        setAirlinesFilter(res.data);
+      } catch (error) {
+        console.error("Failed to fetch airlines", error);
+      }
+    };
+
     fetchAircraftTypes();
+    fetchAirlines();
   }, []);
 
   useEffect(() => {
@@ -84,6 +99,7 @@ export default function MyPhotos() {
           limit: 9,
           search: debouncedSearch,
           aircraftTypeFilter: JSON.stringify(selectedAircraftType),
+          airlineFilter: JSON.stringify(selectedAirlines),
         },
       })
       .then((res) => {
@@ -92,7 +108,7 @@ export default function MyPhotos() {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, [page, debouncedSearch, selectedAircraftType, lastRefresh]);
+  }, [page, debouncedSearch, selectedAircraftType, selectedAirlines, lastRefresh]);
 
   return (
     <div className="space-y-8">
@@ -102,6 +118,7 @@ export default function MyPhotos() {
           onClose={() => setIsPlaying(false)}
           search={debouncedSearch}
           selectedAircraftType={selectedAircraftType}
+          airlineFilter={selectedAirlines}
         />
       )}
 
@@ -126,56 +143,112 @@ export default function MyPhotos() {
 
       {/* Filters & Search */}
       <div className="bg-card border rounded-xl p-4 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search by registration (e.g., N12345)..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-background border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
-          />
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by registration (e.g., N12345)..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-background border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+            />
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+            className={cn("gap-2", isFiltersExpanded && "bg-muted")}
+          >
+            <Filter size={16} />
+            Filters {(selectedAircraftType.length > 0 || selectedAirlines.length > 0) && `(${(selectedAircraftType.length + selectedAirlines.length)})`}
+          </Button>
         </div>
 
-        {aircraftTypesFilter.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Filter size={12} />
-              <span>Filter by Aircraft Type</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {aircraftTypesFilter.map((aircraft) => {
-                const isSelected = selectedAircraftType.includes(
-                  aircraft.airplane_code,
-                );
-                return (
-                  <button
-                    key={aircraft.airplane_code}
-                    onClick={() =>
-                      setSelectedAircraftType((prev) => {
-                        if (prev.includes(aircraft.airplane_code)) {
-                          return prev.filter(
-                            (code) => code !== aircraft.airplane_code,
-                          );
+        {isFiltersExpanded && (
+          <div className="space-y-6 pt-2 border-t mt-4">
+            {aircraftTypesFilter.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <Filter size={12} />
+                  <span>Filter by Aircraft Type</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {aircraftTypesFilter.map((aircraft) => {
+                    const isSelected = selectedAircraftType.includes(
+                      aircraft.airplane_code,
+                    );
+                    return (
+                      <button
+                        key={aircraft.airplane_code}
+                        onClick={() =>
+                          setSelectedAircraftType((prev) => {
+                            if (prev.includes(aircraft.airplane_code)) {
+                              return prev.filter(
+                                (code) => code !== aircraft.airplane_code,
+                              );
+                            }
+                            return [...prev, aircraft.airplane_code];
+                          })
                         }
-                        return [...prev, aircraft.airplane_code];
-                      })
-                    }
-                    className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border",
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                        : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:bg-muted"
-                    )}
-                  >
-                    {aircraft.airplane_code}
-                    <span className={cn("ml-0.5 opacity-60", isSelected ? "text-primary-foreground" : "")}>
-                      {aircraft.photo_count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border",
+                          isSelected
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                            : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:bg-muted"
+                        )}
+                      >
+                        {aircraft.airplane_code}
+                        <span className={cn("ml-0.5 opacity-60", isSelected ? "text-primary-foreground" : "")}>
+                          {aircraft.photo_count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {airlinesFilter.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <Filter size={12} />
+                  <span>Filter by Airline</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {airlinesFilter.map((airline) => {
+                    const isSelected = selectedAirlines.includes(
+                      airline.airline_code,
+                    );
+                    return (
+                      <button
+                        key={airline.airline_code}
+                        onClick={() =>
+                          setSelectedAirlines((prev) => {
+                            if (prev.includes(airline.airline_code)) {
+                              return prev.filter(
+                                (code) => code !== airline.airline_code,
+                              );
+                            }
+                            return [...prev, airline.airline_code];
+                          })
+                        }
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border",
+                          isSelected
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                            : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:bg-muted"
+                        )}
+                      >
+                        {airline.airline_name}
+                        <span className={cn("ml-0.5 opacity-60", isSelected ? "text-primary-foreground" : "")}>
+                          {airline.photo_count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -195,12 +268,13 @@ export default function MyPhotos() {
           <p className="text-muted-foreground mt-1 max-w-sm mx-auto">
             We couldn't find any photos matching your current filters or search query.
           </p>
-          {(debouncedSearch || selectedAircraftType.length > 0) && (
+          {(debouncedSearch || selectedAircraftType.length > 0 || selectedAirlines.length > 0) && (
             <Button
               variant="link"
               onClick={() => {
                 setSearch("");
                 setSelectedAircraftType([]);
+                setSelectedAirlines([]);
               }}
               className="mt-4 text-primary gap-2"
             >

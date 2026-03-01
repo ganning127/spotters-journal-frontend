@@ -13,6 +13,7 @@ interface SimplePhotosOverlayProps {
   onClose: () => void;
   search?: string;
   selectedAircraftType?: string[];
+  airlineFilter?: string[];
   intervalMs?: number;
 }
 
@@ -21,6 +22,7 @@ export function SimplePhotosOverlay({
   onClose,
   search = "",
   selectedAircraftType = [],
+  airlineFilter = [],
   intervalMs = 30_000,
 }: SimplePhotosOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,6 +40,7 @@ export function SimplePhotosOverlay({
     isOpen,
     search,
     selectedAircraftType,
+    airlineFilter,
     initialIntervalMs: intervalMs,
   });
 

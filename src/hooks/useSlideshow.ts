@@ -6,6 +6,7 @@ interface UseSlideshowProps {
   initialIntervalMs?: number;
   search?: string;
   selectedAircraftType?: string[];
+  airlineFilter?: string[];
   isOpen: boolean;
 }
 
@@ -13,6 +14,7 @@ export function useSlideshow({
   initialIntervalMs = 30_000,
   search = "",
   selectedAircraftType = [],
+  airlineFilter = [],
   isOpen,
 }: UseSlideshowProps) {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -47,6 +49,7 @@ export function useSlideshow({
             params: {
               search: search,
               aircraftTypeFilter: JSON.stringify(selectedAircraftType),
+              airlineFilter: JSON.stringify(airlineFilter),
             },
             headers: {
               "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
@@ -71,7 +74,7 @@ export function useSlideshow({
         isFetchingRef.current = false;
       }
     },
-    [search, selectedAircraftType],
+    [search, selectedAircraftType, airlineFilter],
   );
 
   // Initial Load
