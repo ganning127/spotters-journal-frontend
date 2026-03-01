@@ -1,29 +1,7 @@
 import { Calendar, MapPin } from "lucide-react";
 import { rectifyFormat, cn } from "@/lib/utils";
 
-export interface Suggestion {
-  type_id: string;
-  uuid_rh: string;
-  airline?: string;
-  airline_name?: string;
-  Photo: { id: number; taken_at: string; image_url: string; airport_code: string }[];
-  SpecificAircraft: {
-    icao_type: string;
-    manufacturer: string;
-    type: string;
-    variant: string;
-  };
-  UserFlight?: {
-    uuid_flight: string;
-    flight_number: string;
-    dep_ts: string;
-    arr_ts: string;
-    date: string;
-    dep_airport: string;
-    arr_airport: string;
-    airline_code: string;
-  }[];
-}
+import type { Suggestion } from "@/types";
 
 export const AircraftInfoDisplay = ({ aircraft, currentTakenAt, editingPhotoId }: { aircraft: Suggestion; currentTakenAt?: string; editingPhotoId?: number }) => {
   const userPhotos = aircraft.Photo || [];

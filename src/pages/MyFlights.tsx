@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { FlightTable } from "@/components/FlightTable";
-import type { Flight } from "@/components/FlightCard";
+import type { UserFlight as Flight } from "@/types";
 import { MultiFlightGlobe } from "@/components/MultiFlightGlobe";
 
 export default function MyFlights() {

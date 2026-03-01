@@ -8,7 +8,7 @@ import { Input } from "../ui/input";
 import { NewAircraftSelector } from "./NewAircraftSelector";
 import { Button } from "@/components/ui/button";
 import { AircraftInfoDisplay } from "./AircraftInfoDisplay";
-import type { Suggestion } from "./AircraftInfoDisplay";
+import type { Suggestion } from "@/types";
 
 export const AddRegistration = memo(({
   formData,

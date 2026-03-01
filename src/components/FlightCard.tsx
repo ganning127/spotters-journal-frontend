@@ -8,28 +8,7 @@ import { parseLocalDate } from "@/lib/utils";
 import tzlookup from 'tz-lookup';
 import { formatInTimeZone } from 'date-fns-tz';
 
-export interface Flight {
-  uuid_flight: string;
-  date: string;
-  dep_airport: string;
-  arr_airport: string;
-  flight_number: string;
-  airline_code: string;
-  distance: number;
-  notes: string;
-  dep_ts?: string;
-  arr_ts?: string;
-  dep: { icao_code: string; name: string; latitude?: number; longitude?: number };
-  arr: { icao_code: string; name: string; latitude?: number; longitude?: number };
-  airline: { code: string; name: string, domain?: string };
-  RegistrationHistory: {
-    registration: string;
-    SpecificAircraft: {
-      icao_type: string;
-      AircraftType: { manufacturer: string; type: string; variant: string };
-    };
-  };
-}
+import type { UserFlight as Flight } from "@/types";
 
 interface FlightCardProps {
   flight: Flight;
@@ -109,7 +88,7 @@ export const FlightCard = ({ flight, onRefresh }: FlightCardProps) => {
             <div className="absolute inset-x-4 top-3 border-t border-dashed border-border" />
             <div className="relative bg-card px-2 flex flex-col items-center gap-1 z-10">
               <Plane size={16} className="text-muted-foreground" />
-              {flight.distance > 0 && (
+              {flight.distance !== undefined && flight.distance > 0 && (
                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
                   {flight.distance} mi
                 </span>

@@ -79,6 +79,7 @@ export interface Airline {
   name: string; // friendly readable name
   reg_suffix?: string[]; // heuristic, registration suffix for this airline
   reg_prefix?: string[]; // heuristic, registration prefix for this airline
+  domain?: string;
 }
 
 export interface BasicAirportInfo {
@@ -143,3 +144,37 @@ export interface AddFlightRequest {
   dep_ts?: string;
   arr_ts?: string;
 }
+
+export interface UserFlight {
+  uuid_flight: string;
+  date: string;
+  dep_airport: string;
+  arr_airport: string;
+  flight_number: string;
+  airline_code: string;
+  distance: number;
+  notes?: string;
+  dep_ts?: string;
+  arr_ts?: string;
+  user_id?: number;
+  dep?: BasicAirportInfo;
+  arr?: BasicAirportInfo;
+  airline?: Airline;
+  RegistrationHistory?: RegistrationHistory;
+}
+
+export interface Suggestion {
+  type_id: string;
+  uuid_rh: string;
+  airline?: string;
+  airline_name?: string;
+  Photo: Photo[];
+  SpecificAircraft: {
+    icao_type: string;
+    manufacturer: string;
+    type: string;
+    variant: string;
+  };
+  UserFlight?: UserFlight[];
+}
+
