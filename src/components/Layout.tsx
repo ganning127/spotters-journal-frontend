@@ -1,4 +1,3 @@
-// src/components/Layout.tsx
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -20,6 +19,8 @@ import {
   BarChart3,
   Plane,
   PlaneTakeoff,
+  Plus,
+  Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,6 @@ export default function Layout() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
-  // Added 'category' to group items for logical separation
   const navItems = [
     { label: "My Photos", href: "/photos", icon: Camera, category: "photography" },
     { label: "Upload Photo", href: "/upload", icon: UploadCloud, category: "photography" },
@@ -39,23 +39,24 @@ export default function Layout() {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans">
+    <div className="min-h-screen bg-background flex flex-col font-sans pb-20 lg:pb-0">
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
 
           {/* LOGO */}
-          <Link to="/" className="flex items-center gap-2.5 group">
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="relative">
               <div className="absolute -inset-1 rounded-full bg-primary/10 blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-              <img src="/cropped_logo.png" alt="Logo" className="h-9 w-auto relative transform transition-transform group-hover:scale-105" />
+              <img src="/cropped_logo.png" alt="Logo" className="h-8 w-auto lg:h-9 relative transform transition-transform group-hover:scale-105" />
             </div>
-            <span className="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-              Spotter&apos;s Journal
+            <span className="text-base lg:text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+              <span className="hidden sm:inline">Spotter&apos;s Journal</span>
+              <span className="sm:hidden">Spotter</span>
             </span>
           </Link>
 
-          {/* DESKTOP MENU */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* DESKTOP MENU (LG+) */}
+          <div className="hidden lg:flex items-center gap-2">
             {user ? (
               <>
                 <div className="flex items-center gap-1 mr-4">
@@ -124,8 +125,36 @@ export default function Layout() {
             )}
           </div>
 
-          {/* MOBILE HAMBURGER BUTTON */}
-          <div className="md:hidden flex items-center">
+          {/* MOBILE ACTIONS (HEADER) */}
+          <div className="lg:hidden flex items-center gap-2">
+            {!user ? (
+              <Link to="/login">
+                <Button variant="ghost" size="sm">Log In</Button>
+              </Link>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.username}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-red-500">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
             <Button
               variant="ghost"
               size="icon"
@@ -137,63 +166,122 @@ export default function Layout() {
           </div>
         </div>
 
-        {/* MOBILE DROPDOWN PANEL */}
+        {/* MOBILE MENU OVERLAY */}
         {isOpen && (
-          <div className="md:hidden border-t bg-background px-4 py-4 space-y-4 shadow-lg animate-in slide-in-from-top-2">
-            {user ? (
-              <>
-                <div className="space-y-1">
-                  {navItems.map((item, index) => {
-                    const showSeparator = index > 0 && navItems[index - 1].category !== item.category;
-                    return (
-                      <Fragment key={item.href}>
-                        {showSeparator && <div className="my-2 border-t border-border/50" />}
-                        <Link to={item.href} onClick={() => setIsOpen(false)}>
-                          <Button variant="ghost" className="w-full justify-start gap-2">
-                            <item.icon className="h-4 w-4" />
-                            {item.label}
-                          </Button>
-                        </Link>
-                      </Fragment>
-                    );
-                  })}
+          <div className="lg:hidden border-t bg-background px-4 py-6 space-y-6 shadow-xl animate-in fade-in slide-in-from-top-4 fixed inset-x-0 top-16 z-50 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">Photography</h3>
+                <div className="grid grid-cols-1 gap-1">
+                  {navItems.filter(i => i.category === 'photography').map(item => (
+                    <Link key={item.href} to={item.href} onClick={() => setIsOpen(false)}>
+                      <Button variant={location.pathname === item.href ? "secondary" : "ghost"} className="w-full justify-start gap-3 h-11">
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  ))}
                 </div>
-                <div className="border-t pt-4 mt-2">
-                  <div className="flex items-center gap-3 px-2 mb-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                      {user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">{user.username}</span>
-                      <span className="text-xs text-muted-foreground">Logged in</span>
-                    </div>
-                  </div>
-                  <Button onClick={logout} variant="destructive" size="sm" className="w-full ">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </Button>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">Aviation</h3>
+                <div className="grid grid-cols-1 gap-1">
+                  {navItems.filter(i => i.category === 'aviation').map(item => (
+                    <Link key={item.href} to={item.href} onClick={() => setIsOpen(false)}>
+                      <Button variant={location.pathname === item.href ? "secondary" : "ghost"} className="w-full justify-start gap-3 h-11">
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  ))}
                 </div>
-              </>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <Link to="/login" onClick={() => setIsOpen(false)}>
-                  <Button variant="outline" className="w-full">Log In</Button>
-                </Link>
-                <Link to="/signup" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full">Sign Up</Button>
-                </Link>
+              </div>
+            </div>
+
+            {user && (
+              <div className="pt-4 border-t">
+                <Button onClick={logout} variant="destructive" className="w-full h-11">
+                  <LogOut className="mr-2 h-5 w-5" />
+                  Logout
+                </Button>
               </div>
             )}
           </div>
         )}
       </nav>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-8 py-8 animate-in fade-in duration-500">
+      {/* BOTTOM NAVIGATION (MOBILE) */}
+      {user && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t pb-safe">
+          <div className="flex items-center justify-around h-16 max-w-md mx-auto relative">
+
+            <Link to="/photos" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", location.pathname === "/photos" ? "text-primary" : "text-muted-foreground")}>
+              <Camera className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Photos</span>
+            </Link>
+
+            <Link to="/flights" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", location.pathname === "/flights" ? "text-primary" : "text-muted-foreground")}>
+              <Plane className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Flights</span>
+            </Link>
+
+            {/* QUICK ACTIONS "+" BUTTON */}
+            <div className="relative -top-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" className="h-12 w-12 rounded-full shadow-lg shadow-primary/20 ring-4 ring-background">
+                    <Plus className="h-6 w-6" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" side="top" className="w-48 mb-2">
+                  <DropdownMenuItem asChild>
+                    <Link to="/upload" className="flex items-center gap-2">
+                      <UploadCloud className="h-4 w-4" />
+                      <span>Upload Photo</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/flights/add" className="flex items-center gap-2">
+                      <PlaneTakeoff className="h-4 w-4" />
+                      <span>Add Flight</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", (location.pathname === "/stats" || location.pathname === "/flight-stats") ? "text-primary" : "text-muted-foreground")}>
+                  <BarChart3 className="h-5 w-5" />
+                  <span className="text-[10px] font-medium">Stats</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" side="top" className="w-40 mb-2">
+                <DropdownMenuItem asChild>
+                  <Link to="/stats">Photo Stats</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/flight-stats">Flight Stats</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Link to="/" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", location.pathname === "/" ? "text-primary" : "text-muted-foreground")}>
+              <Home className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Home</span>
+            </Link>
+
+          </div>
+        </div>
+      )}
+
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 lg:px-8 py-8 animate-in fade-in duration-500">
         <Outlet />
       </main>
 
-      <footer className="border-t py-6 md:py-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+      <footer className="border-t py-6 lg:py-8 mt-auto hidden sm:block">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} Spotter&apos;s Journal. All rights reserved.</p>
           <div className="flex gap-4">
             <Link to="#" className="hover:text-foreground transition-colors">Privacy</Link>

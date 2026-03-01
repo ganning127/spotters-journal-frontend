@@ -191,6 +191,7 @@ export interface TopAirlineResponse {
   brand_color?: string;
   flight_count: number;
   total_distance: number;
+  total_time_mins?: number;
 }
 
 export interface TopRegistrationResponse {
