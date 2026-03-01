@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { AddRegistration } from "@/components/upload/AddRegistration";
 import { AddImageExif } from "@/components/upload/AddImageExif";
-import { AirportSelector } from "@/components/upload/AirportSelector";
+import { AirportAutocomplete } from "@/components/ui/airport-autocomplete";
 import type { Photo, UploadPhotoRequest } from "@/types";
 import api from "@/api/axios";
 import { toast } from "sonner";
@@ -24,7 +24,6 @@ export function EditPhotoModal({ photo, isOpen, onClose, onUpdate }: EditPhotoMo
   const [formData, setFormData] = useState<UploadPhotoRequest>({
     registration: "",
     airport_code: "",
-    image_url: "",
     taken_at: "",
     shutter_speed: "",
     iso: 0,
@@ -35,10 +34,6 @@ export function EditPhotoModal({ photo, isOpen, onClose, onUpdate }: EditPhotoMo
     manufactured_date: undefined, // This expects string | undefined likely? Check logic.
     airline_code: "",
     uuid_rh: "",
-    airport_icao_code: "",
-    airport_name: "",
-    airport_latitude: undefined,
-    airport_longitude: undefined,
   });
 
   const [saving, setSaving] = useState(false);
@@ -52,7 +47,6 @@ export function EditPhotoModal({ photo, isOpen, onClose, onUpdate }: EditPhotoMo
       setFormData({
         registration: RegistrationHistory.registration,
         airport_code: photo.airport_code,
-        image_url: photo.image_url,
         taken_at: photo.taken_at ? new Date(photo.taken_at).toISOString().slice(0, 16) : "",
         shutter_speed: photo.shutter_speed || "",
         iso: photo.iso || 0,
@@ -65,16 +59,6 @@ export function EditPhotoModal({ photo, isOpen, onClose, onUpdate }: EditPhotoMo
         aircraft_type_id: SpecificAircraft.icao_type,
         airline_code: RegistrationHistory.airline || "",
         uuid_rh: photo.uuid_rh, // Important: existing mapping
-
-        // Airport fields (not editing airport for now as per prompt "edit all info... aside from image")
-        // But let's keep them empty unless we want to support airport edit too. 
-        // For now, let's assume we are mostly focused on Aircraft/EXIF. 
-        // If we want to support Airport edit, we'd need that UI too.
-        airport_icao_code: "",
-        airport_name: "",
-        airport_latitude: undefined,
-        airport_longitude: undefined,
-        manufactured_date: undefined // Not easily available in flattened photo object unless we drill down often
       });
     }
   }, [isOpen, photo]);
@@ -101,8 +85,6 @@ export function EditPhotoModal({ photo, isOpen, onClose, onUpdate }: EditPhotoMo
   if (isOpen && !formData.uuid_rh) {
     return <Spinner />
   }
-
-  console.log('formData.uuid_rh in EditPhotoModal: ', formData.uuid_rh);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -138,7 +120,22 @@ export function EditPhotoModal({ photo, isOpen, onClose, onUpdate }: EditPhotoMo
             {/* 3. Airport Details Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Airport Details</h3>
-              <AirportSelector formData={formData} setFormData={setFormData} disableAutoLoad={true} />
+              <AirportAutocomplete
+                value={formData.airport_code}
+                placeholder="ICAO code"
+                onChange={(val, airport) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    airport_code: val,
+                    ...(airport && {
+                      airport_icao_code: airport.icao_code,
+                      airport_name: airport.name,
+                      airport_latitude: airport.latitude,
+                      airport_longitude: airport.longitude,
+                    }),
+                  }));
+                }}
+              />
             </div>
 
           </div>

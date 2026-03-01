@@ -64,6 +64,8 @@ export function AirportAutocomplete({
     return () => clearTimeout(delayDebounceFn);
   }, [query, open]);
 
+  console.log("airport code", value);
+
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <div className="relative flex items-center">

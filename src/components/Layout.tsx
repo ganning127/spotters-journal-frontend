@@ -19,8 +19,6 @@ import {
   BarChart3,
   Plane,
   PlaneTakeoff,
-  Plus,
-  Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -209,72 +207,6 @@ export default function Layout() {
           </div>
         )}
       </nav>
-
-      {/* BOTTOM NAVIGATION (MOBILE) */}
-      {user && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t pb-safe">
-          <div className="flex items-center justify-around h-16 max-w-md mx-auto relative">
-
-            <Link to="/photos" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", location.pathname === "/photos" ? "text-primary" : "text-muted-foreground")}>
-              <Camera className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Photos</span>
-            </Link>
-
-            <Link to="/flights" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", location.pathname === "/flights" ? "text-primary" : "text-muted-foreground")}>
-              <Plane className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Flights</span>
-            </Link>
-
-            {/* QUICK ACTIONS "+" BUTTON */}
-            <div className="relative -top-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" className="h-12 w-12 rounded-full shadow-lg shadow-primary/20 ring-4 ring-background">
-                    <Plus className="h-6 w-6" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" side="top" className="w-48 mb-2">
-                  <DropdownMenuItem asChild>
-                    <Link to="/upload" className="flex items-center gap-2">
-                      <UploadCloud className="h-4 w-4" />
-                      <span>Upload Photo</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/flights/add" className="flex items-center gap-2">
-                      <PlaneTakeoff className="h-4 w-4" />
-                      <span>Add Flight</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", (location.pathname === "/stats" || location.pathname === "/flight-stats") ? "text-primary" : "text-muted-foreground")}>
-                  <BarChart3 className="h-5 w-5" />
-                  <span className="text-[10px] font-medium">Stats</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" side="top" className="w-40 mb-2">
-                <DropdownMenuItem asChild>
-                  <Link to="/stats">Photo Stats</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/flight-stats">Flight Stats</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Link to="/" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", location.pathname === "/" ? "text-primary" : "text-muted-foreground")}>
-              <Home className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Home</span>
-            </Link>
-
-          </div>
-        </div>
-      )}
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 lg:px-8 py-8 animate-in fade-in duration-500">
         <Outlet />

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import api from "../api/axios";
 import type { UploadPhotoRequest } from "../types";
 import { Button } from "../components/ui/button";
-import { AirportSelector } from "@/components/upload/AirportSelector";
+import { AirportAutocomplete } from "@/components/ui/airport-autocomplete";
 import { Field, FieldDescription, FieldSet } from "@/components/ui/field";
 import { Section } from "@/components/upload/Section";
 import { AddImageExif } from "@/components/upload/AddImageExif";
@@ -17,7 +17,6 @@ import { ImageMagnifier } from "@/components/ui/image-magnifier";
 const defaultData = {
   registration: "",
   airport_code: "",
-  image_url: "", // Still used as type dummy, but ignored in upload
   taken_at: "",
   shutter_speed: "",
   iso: 0,
@@ -30,11 +29,6 @@ const defaultData = {
 
   aircraft_type_id: "",
   manufactured_date: "",
-
-  airport_icao_code: "",
-  airport_name: "",
-  airport_latitude: 0,
-  airport_longitude: 0,
 } as UploadPhotoRequest;
 
 const STEPS = [
@@ -85,7 +79,6 @@ export default function UploadPhoto() {
   };
 
   const nextStep = () => {
-    console.log('in nextStep', formData.taken_at)
     if (step === 1 && !selectedFile) {
       toast.error("Please select an image first.");
       return;
@@ -94,9 +87,29 @@ export default function UploadPhoto() {
       toast.error("Please enter when the photo was taken.");
       return;
     }
-    if (step === 3 && !formData.registration) {
-      toast.error("Please enter a registration.");
-      return;
+    if (step === 3) {
+      if (!formData.registration) {
+        toast.error("Please enter a registration.");
+        return;
+      } else {
+        // pre-populate local storage
+        const lastUsedAirport = localStorage.getItem("lastUsedAirport");
+        if (lastUsedAirport) {
+          try {
+            const airportInfo = JSON.parse(lastUsedAirport);
+            console.log("airportInfo", airportInfo);
+
+            setFormData((prev) => {
+              return {
+                ...prev,
+                airport_code: airportInfo.icao_code,
+              }
+            })
+          } catch (e) {
+            console.error("lastUsedAirport population failed: ", lastUsedAirport);
+          }
+        }
+      }
     }
     if (step === 4 && !formData.airport_code) {
       toast.error("Please select an airport.");
@@ -160,8 +173,6 @@ export default function UploadPhoto() {
         data.append("manufactured_date", formData.manufactured_date);
       }
 
-      data.append("airport_icao_code", formData.airport_icao_code || "");
-      data.append("airport_name", formData.airport_name || "");
       data.append("airport_latitude", formData.airport_latitude ? formData.airport_latitude.toString() : "");
       data.append("airport_longitude", formData.airport_longitude ? formData.airport_longitude.toString() : "");
 
@@ -332,7 +343,33 @@ export default function UploadPhoto() {
               <FieldSet>
                 <Field>Airport</Field>
                 <FieldDescription className="mb-2">Where was this photo taken?</FieldDescription>
-                <AirportSelector formData={formData} setFormData={setFormData} />
+                <AirportAutocomplete
+                  value={formData.airport_code}
+                  placeholder="ICAO code or airport name"
+                  onChange={(val, airport) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      airport_code: val,
+                      ...(airport && {
+                        airport_icao_code: airport.icao_code,
+                        airport_name: airport.name,
+                        airport_latitude: airport.latitude,
+                        airport_longitude: airport.longitude,
+                      }),
+                    }));
+                    if (airport) {
+                      localStorage.setItem(
+                        "lastUsedAirport",
+                        JSON.stringify({
+                          icao_code: airport.icao_code,
+                          name: airport.name,
+                        }),
+                      );
+                    } else if (!val) {
+                      localStorage.removeItem("lastUsedAirport");
+                    }
+                  }}
+                />
               </FieldSet>
             </Section>
           </div>
@@ -368,9 +405,6 @@ export default function UploadPhoto() {
                   <div>
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Location</span>
                     <p className="font-medium">{formData.airport_code}</p>
-                    {formData.airport_name && (
-                      <p className="text-sm text-muted-foreground">{formData.airport_name}</p>
-                    )}
                   </div>
                   <div>
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Date Taken</span>

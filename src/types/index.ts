@@ -55,7 +55,6 @@ export interface AuthResponse {
 export interface UploadPhotoRequest {
   registration: string;
   airport_code: string;
-  image_url: string;
   taken_at?: string;
   shutter_speed?: string;
   iso?: number;
@@ -70,8 +69,6 @@ export interface UploadPhotoRequest {
   airport_latitude?: number | undefined;
   airport_longitude?: number | undefined;
   manufactured_date?: string | undefined;
-  airport_icao_code?: string;
-  airport_name?: string;
 }
 
 export interface Airline {
