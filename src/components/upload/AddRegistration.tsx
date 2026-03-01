@@ -2,115 +2,21 @@ import api from "@/api/axios";
 import type { UploadPhotoRequest } from "@/types";
 import { useEffect, useState, memo } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BadgeCheck, Calendar, MapPin } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { Field, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
 import { NewAircraftSelector } from "./NewAircraftSelector";
-import { rectifyFormat, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-interface Suggestion {
-  type_id: string;
-  uuid_rh: string;
-  airline?: string;
-  airline_name?: string;
-  Photo: { id: number; taken_at: string; image_url: string; airport_code: string }[];
-  SpecificAircraft: {
-    icao_type: string;
-    manufacturer: string;
-    type: string;
-    variant: string;
-  };
-}
-
-const AircraftInfoDisplay = ({ aircraft, currentTakenAt, isEditMode, editingPhotoId }: { aircraft: Suggestion; currentTakenAt?: string; isEditMode?: boolean; editingPhotoId?: number }) => {
-  const userPhotos = aircraft.Photo || [];
-
-  const isProximate = (photoDate: string) => {
-    if (!currentTakenAt) return false;
-    try {
-      const d1 = new Date(currentTakenAt + (currentTakenAt.endsWith("Z") ? "" : "Z"));
-      const d2 = new Date(photoDate); // these dates are not the actual time the photo was taken, but it's fine since we are comparing them with each other
-
-      const diffMs = Math.abs(d1.getTime() - d2.getTime());
-      const diffMins = diffMs / (1000 * 60);
-      return diffMins <= 30;
-    } catch (e) {
-      return false;
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-2 w-full">
-      <div>
-        <div className="font-bold">
-          {aircraft.SpecificAircraft.manufacturer} {aircraft.SpecificAircraft.type}
-          {aircraft.SpecificAircraft.variant
-            ? `-${aircraft.SpecificAircraft.variant}`
-            : ""}
-          {" "}
-          ({aircraft.airline_name || aircraft.airline || "Unknown Airline"})
-        </div>
-      </div>
-
-      {userPhotos.length > 0 && !isEditMode && (
-        <div className="grid grid-cols-2 gap-2 mt-0">
-          <div className="col-span-2 text-xs text-muted-foreground">
-            You have {userPhotos.length} {
-              userPhotos.length === 1 ? "photo" : "photos"
-            } of this aircraft in your collection.
-          </div>
-
-          {userPhotos.map((photo, index) => {
-            const proximate = photo.id !== editingPhotoId && isProximate(photo.taken_at);
-            return (
-              <div
-                key={index}
-                className={cn(
-                  "flex flex-col gap-2 p-2 rounded-lg border transition-colors relative",
-                  proximate ? "bg-amber-500/10 border-amber-500/50 hover:bg-amber-500/20" : "bg-card/50 hover:bg-card border-border"
-                )}
-              >
-                {proximate && (
-                  <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm z-10">
-                    WITHIN 30M
-                  </div>
-                )}
-                <div className="w-full aspect-video rounded-md overflow-hidden border border-border/50 bg-muted relative group">
-                  <img
-                    src={photo.image_url}
-                    alt={`Photo from ${photo.taken_at}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="flex items-center justify-between px-1">
-                  <div className={cn("flex items-center gap-1.5 text-xs", proximate ? "text-amber-600 font-medium" : "text-muted-foreground")}>
-                    <Calendar className="w-3.5 h-3.5 opacity-70" />
-                    <span>{rectifyFormat(photo.taken_at)}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-foreground/80 bg-secondary/50 px-1.5 py-0.5 rounded-sm">
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span>{photo.airport_code}</span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
+import { AircraftInfoDisplay } from "./AircraftInfoDisplay";
+import type { Suggestion } from "./AircraftInfoDisplay";
 
 export const AddRegistration = memo(({
   formData,
   setFormData,
-  isEditMode = false,
   editingPhotoId,
 }: {
   formData: UploadPhotoRequest;
   setFormData: React.Dispatch<React.SetStateAction<UploadPhotoRequest>>;
-  isEditMode?: boolean;
   editingPhotoId?: number;
 }) => {
   const [loading, setLoading] = useState(false);
@@ -138,7 +44,6 @@ export const AddRegistration = memo(({
       if (!formData.registration) return;
 
       // 1. Check if we have uuid_rh (edit mode fetch)
-      console.log("We have formData.uuid_rh: ", formData.uuid_rh);
       if (formData.uuid_rh) {
         try {
           const res = await api.get(`/aircraft/history/${formData.uuid_rh}`);
@@ -222,7 +127,7 @@ export const AddRegistration = memo(({
   };
 
   return (
-    <>
+    <div>
       <FieldSet>
         <Field>Registration</Field>
         <div className="flex w-full items-center space-x-2">
@@ -265,10 +170,10 @@ export const AddRegistration = memo(({
       {confirmedAircraft && !isNewAircraft && (
         <Alert className="w-full mt-2 bg-green-100 border-none flex flex-col gap-2 opacity-75">
           <div className="flex items-start gap-2">
-            <BadgeCheck className="mt-1" />
+            <BadgeCheck />
             <div className="flex-1">
               <AlertDescription>
-                <AircraftInfoDisplay aircraft={confirmedAircraft} currentTakenAt={formData.taken_at} isEditMode={isEditMode} editingPhotoId={editingPhotoId} />
+                <AircraftInfoDisplay aircraft={confirmedAircraft} currentTakenAt={formData.taken_at} editingPhotoId={editingPhotoId} />
 
                 <div className="mt-2 flex items-center gap-2 text-success font-medium">
                   <button
@@ -292,7 +197,7 @@ export const AddRegistration = memo(({
           <p className="text-sm text-muted-foreground font-medium">Found {suggestions.length} aircraft for this registration:</p>
           {suggestions.map((aircraft, idx) => (
             <div key={idx} className="border rounded-lg p-3 flex flex-col gap-3 bg-card hover:bg-accent/50 transition-colors">
-              <AircraftInfoDisplay aircraft={aircraft} currentTakenAt={formData.taken_at} isEditMode={isEditMode} editingPhotoId={editingPhotoId} />
+              <AircraftInfoDisplay aircraft={aircraft} currentTakenAt={formData.taken_at} editingPhotoId={editingPhotoId} />
               <Button size="sm" variant="secondary" className="w-full" onClick={() => handleSelectAircraft(aircraft)}>
                 Select
               </Button>
@@ -331,7 +236,7 @@ export const AddRegistration = memo(({
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }, (prevProps, nextProps) => {
   return (
@@ -340,7 +245,6 @@ export const AddRegistration = memo(({
     prevProps.formData.airline_code === nextProps.formData.airline_code &&
     prevProps.formData.uuid_rh === nextProps.formData.uuid_rh &&
     prevProps.formData.taken_at === nextProps.formData.taken_at &&
-    prevProps.isEditMode === nextProps.isEditMode &&
     prevProps.editingPhotoId === nextProps.editingPhotoId &&
     prevProps.setFormData === nextProps.setFormData
   );
