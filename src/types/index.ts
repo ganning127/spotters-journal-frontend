@@ -140,6 +140,7 @@ export interface AddFlightRequest {
   manufactured_date?: string;
   dep_ts?: string;
   arr_ts?: string;
+  rating?: number;
 }
 
 export interface UserFlight {
@@ -153,6 +154,7 @@ export interface UserFlight {
   notes?: string;
   dep_ts?: string;
   arr_ts?: string;
+  rating?: number;
   user_id?: number;
   dep?: BasicAirportInfo;
   arr?: BasicAirportInfo;

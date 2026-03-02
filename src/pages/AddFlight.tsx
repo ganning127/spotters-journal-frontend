@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 import tzlookup from 'tz-lookup';
 import { FlightGlobe } from "@/components/FlightGlobe";
+import { StarRating } from "@/components/ui/star-rating";
 
 export default function AddFlight() {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function AddFlight() {
     uuid_rh: "",
     dep_ts: "",
     arr_ts: "",
+    rating: 0,
   });
 
   useEffect(() => {
@@ -79,6 +81,7 @@ export default function AddFlight() {
             uuid_rh: flight.uuid_rh || "",
             dep_ts: flight.dep_ts || "",
             arr_ts: flight.arr_ts || "",
+            rating: flight.rating || 0,
           });
         } catch (err) {
           console.error("Failed to fetch flight", err);
@@ -490,6 +493,15 @@ export default function AddFlight() {
         {/* 6. Notes & Submit */}
         {isAircraftSelected && hasFlightNumber && hasAirports && !isAutoFilling && (
           <div className="space-y-8 animate-in slide-in-from-top-4 fade-in duration-500">
+            <FieldSet>
+              <Field>Flight Rating (Optional)</Field>
+              <FieldDescription>How was your experience on this flight?</FieldDescription>
+              <StarRating
+                value={formData.rating || 0}
+                onChange={(v) => setFormData(prev => ({ ...prev, rating: v }))}
+              />
+            </FieldSet>
+
             <FieldSet>
               <Field>Notes (Optional)</Field>
               <Textarea name="notes" placeholder="Any special notes about this flight?" value={formData.notes || ""} onChange={handleChange} />

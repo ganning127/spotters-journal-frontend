@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { MoreHorizontal, Edit, Trash } from "lucide-react";
+import { MoreHorizontal, Edit, Trash, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -68,6 +68,7 @@ export function FlightTable({ flights, onRefresh }: FlightTableProps) {
             <TableHead>Arrival</TableHead>
             <TableHead className="hidden md:table-cell">Aircraft</TableHead>
             <TableHead className="hidden lg:table-cell">Distance</TableHead>
+            <TableHead className="hidden lg:table-cell">Rating</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -142,6 +143,23 @@ export function FlightTable({ flights, onRefresh }: FlightTableProps) {
               <TableCell className="hidden lg:table-cell">
                 {flight.distance > 0 ? (
                   <span className="text-sm font-medium">{flight.distance} mi</span>
+                ) : (
+                  <span className="text-muted-foreground text-xs">—</span>
+                )}
+              </TableCell>
+              <TableCell className="hidden lg:table-cell">
+                {flight.rating ? (
+                  <div className="flex text-yellow-400" title={`${flight.rating} out of 5 stars`}>
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const isFilled = flight.rating! >= star;
+                      return (
+                        <div key={star} className="relative w-4 h-4">
+                          <Star className="absolute w-4 h-4 text-muted-foreground/30" strokeWidth={2} />
+                          {isFilled && <Star className="absolute w-4 h-4 fill-yellow-400 text-yellow-500" strokeWidth={2} />}
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <span className="text-muted-foreground text-xs">—</span>
                 )}
