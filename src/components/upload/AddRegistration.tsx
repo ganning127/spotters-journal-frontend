@@ -207,7 +207,15 @@ export const AddRegistration = memo(({
           <Button
             variant="outline"
             className="w-full mt-2"
-            onClick={() => setIsNewAircraft(true)}
+            onClick={() => {
+              setIsNewAircraft(true);
+              setFormData((prev) => ({
+                ...prev,
+                aircraft_type_id: "",
+                airline_code: "",
+                uuid_rh: "",
+              }));
+            }}
           >
             None of these
           </Button>

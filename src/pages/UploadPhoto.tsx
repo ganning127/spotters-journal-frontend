@@ -173,9 +173,6 @@ export default function UploadPhoto() {
         data.append("manufactured_date", formData.manufactured_date);
       }
 
-      data.append("airport_latitude", formData.airport_latitude ? formData.airport_latitude.toString() : "");
-      data.append("airport_longitude", formData.airport_longitude ? formData.airport_longitude.toString() : "");
-
       await api.post("/photos", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -350,12 +347,6 @@ export default function UploadPhoto() {
                     setFormData((prev) => ({
                       ...prev,
                       airport_code: val,
-                      ...(airport && {
-                        airport_icao_code: airport.icao_code,
-                        airport_name: airport.name,
-                        airport_latitude: airport.latitude,
-                        airport_longitude: airport.longitude,
-                      }),
                     }));
                     if (airport) {
                       localStorage.setItem(

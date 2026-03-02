@@ -66,8 +66,6 @@ export interface UploadPhotoRequest {
   uuid_rh?: string; // Existing Registration History UUID
 
   aircraft_type_id?: string; // ICAO Code
-  airport_latitude?: number | undefined;
-  airport_longitude?: number | undefined;
   manufactured_date?: string | undefined;
 }
 
